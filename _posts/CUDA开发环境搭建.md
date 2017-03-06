@@ -1,0 +1,53 @@
+CUDA开发环境配置
+===============
+我偏好使用Ubuntu,那么首先来查看一下所使用的版本   
+    $ cat /etc/issue   
+然后我们来了解一下所使用的GPU版本和对nvidia的支持   
+    $lspci | grep -i nvidia 
+![](http://i.imgur.com/LJlRuY6.png)
+之后查看gcc的支持
+![](http://i.imgur.com/CMa3poc.png)
+![](http://i.imgur.com/GOr87ja.png)  
+可以看到gcc的版本是5.4.0
+之后开始下载CUDA Toolkit，其中下载链接为[`https://developer.nvidia.com/cuda-downloads`](https://developer.nvidia.com/cuda-downloads "CUDA toolkit下载链接")
+安装所需的支持库
+![](http://i.imgur.com/OC32tZ6.png)
+按照相应的系统支持的版本进行下载
+![](http://i.imgur.com/3oo0wnN.png)
+之后就可以把下载好的.run文件放在合适的目录，准备进行安装和环境配置。 首先在进行实际的软件开发之前，要安装一些必要的支持库
+![](http://i.imgur.com/1QYelb5.png)
+卸载在这台机器上之前装过的其他版本的NVIDIA的驱动  
+$ sudo nvidia-uninstall
+![](http://i.imgur.com/Y8u8nCk.png)
+同时也清除原来的nvidia支持库
+$ sudo apt-get --purge remove nvidia-*
+![](http://i.imgur.com/OhgREbn.png)
+屏蔽nouveau的库  
+    $ cd /etc/modprobe.d/  
+找到 nvidia-installer-disable-nouveau.conf里面  
+    blacklist nouveau  
+    options nouveau modeset=0  
+通过这两句话 nvidia的安装包会主动把nouveau的驱动库屏蔽掉，之后重启系统
+运行.run文件 
+![](http://i.imgur.com/DNCc3nR.png)
+`$sudo sh cuda_8.0.61_375.26_linux.run `   
+Enter Toolkit Location  
+ [ default is /usr/local/cuda-8.0 ]:  
+Enter CUDA Samples Location  
+ [ default is /home/dutoeserver ]:           
+可以看到提示信息，要修改PATH和LD_LIBRARY_PATH      
+    `PATH includes /usr/local/cuda-8.0/bin`
+    ` -   LD_LIBRARY_PATH includes /usr/local/cuda-8.0/lib64, or, add /usr/local/cuda-8.0/lib64 to /etc/ld.so.conf and run ldconfig as root`
+回到根目录下 vim .bashrc   依照下图制定路径后 `source .bashrc` 使新配置生效
+
+![](http://i.imgur.com/VWk1iLl.png)
+
+之后通过nvcc --version指令可以看到，我们配置的是Cuda compilation tools, release 8.0, V8.0.61  
+**至此，我们就完成了CUDA的编译环境和SDK的安装，是不是好棒棒！**
+
+现在，我们就可以看到NVIDIA_CUDA-8.0_Samples，文件夹里面就是NVIDIA提供的在不同应用领域的官方示例，我们可以通过阅读官方示例的代码来进行学习个提高。 同时也可以使用官方示例来验证我们的环境配置是否正确。
+![](http://i.imgur.com/HgO3JWT.png)  
+make一下会看到nvcc的工具正在编译包里面的示例             
+![](http://i.imgur.com/LT3bKXX.png)
+测试一下CUDA运行
+![](http://i.imgur.com/YScQ2hn.png)
