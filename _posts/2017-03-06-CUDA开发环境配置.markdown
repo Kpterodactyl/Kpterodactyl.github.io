@@ -2,7 +2,7 @@
 layout:     post
 title:      CUDA开发环境配置
 subtitle:   Ubuntu环境下配置CUDA开发环境
-date:       2017-03-06
+date:       2017-03-06  14:52:08 +0800
 author:     Memory
 header-img: img/post-bg-js-module.jpg
 catalog: true
@@ -11,10 +11,6 @@ tags:
     - GPU
     - 环境配置
 ---
-
-
-CUDA开发环境配置
-===============
 我偏好使用Ubuntu,那么首先来查看一下所使用的版本   
     `$ cat /etc/issue   `  
 然后我们来了解一下所使用的GPU版本和对nvidia的支持     
@@ -34,8 +30,6 @@ CUDA开发环境配置
 $ sudo nvidia-uninstall  
 ![](http://i.imgur.com/Y8u8nCk.png)  
 同时也清除原来的nvidia支持库  
-$ sudo apt-get --purge remove nvidia-*  
-![](http://i.imgur.com/OhgREbn.png)  
 屏蔽nouveau的库  
    ` $ cd /etc/modprobe.d/  `
 找到 nvidia-installer-disable-nouveau.conf里面  

@@ -1,0 +1,62 @@
+---
+layout: post
+title:  "Jekyll使用"
+date:   2017-03-15 14:52:08 +0800
+header-img: img/post-bg-js-module.jpg
+categories: true
+tags:
+    - Jekyll
+---
+Jeekyll可以快速的将一个平文本文件转换成静态的网页或博客，只需要大概十五分钟的时间，我们就可以有一个自己的博客啦，默认的样式也很简洁大方吧。
+![](http://i.imgur.com/yfviaFk.png)   
+那么我开始安装Jekyll吧  
+## 1.Ruby安装   ##
+下载地址  [Ruby-Install-Download]: http://rubyinstaller.org/downloads/    
+ 
+![](http://i.imgur.com/uRu8xXz.png)  
+选择适合自己电脑的版本进行下载就好啦，我选的是最新的版本Ruby 2.3.3(x64) 记得安装的时候要钩上“**Add Ruby executables to your PATH”**选项，这样就会自动的添加环境变量咯。
+装好之后尝试输入ruby -v 应该可以显示对应的版本信息。
+## 2.DevKit安装 ##
+还是再刚才的页面，往下翻就可以看到Devkit的下载啦，要注意下载的DevKit版本要和ruby版本对应，之前咱们下过的版本是高于2.0的所以下最后一个就好了。
+![](http://i.imgur.com/fjs9QwT.png)
+
+下载完成后，点击exe进行安装，在所选择的安装目录下输入如下指令：  
+-     ruby dk.rb init    
+-     ruby dk.rb install   
+## 3. Jekyll安装 ##
+
+{% highlight ruby %}    
+//因为默认的下载源很有可能被禁止了，所以要更换gem源
+gem sources --remove https://rubygems.org/
+gem sources -a https://ruby.taobao.org/
+
+//查看gem源是否更新成功
+gem sources -l
+
+//更新gem
+gem update --system
+
+//安装jekyll
+gem install jekyll  
+{% endhighlight %}
+
+## 4.安装Python的相关环境##
+
+在此就不再赘述Python啦，网上有好多教程。
+要记得装[Easy Install]和[Pygments] 
+## 5.Jekyll的启动 ##
+终于要看到效果啦，  
+{% highlight ruby %}      
+gem install jekyll bundler
+
+jekyll new my-awesome-site
+
+cd my-awesome-site
+
+bundle exec jekyll serve
+
+# => Now browse to http://localhost:4000 
+{% endhighlight %}    
+是不是已经看到自己的博客了呢。    		
+
+

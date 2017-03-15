@@ -2,10 +2,15 @@
 layout:     post
 title:      NVCC编译指令
 subtitle:   NVCC编译选项
-date:       2017-03-15
+date:       2017-03-14
 author:     Memory
 header-img: img/post-bg-debug.png
 catalog: true
+tags:
+    - NVCC
+    - debug
+
+
 ---
 
 ![](http://i.imgur.com/52eiF8B.png)  

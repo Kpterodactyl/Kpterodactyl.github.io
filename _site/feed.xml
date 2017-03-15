@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Bien</title>
+    <description>每个胜利背后都有许多尝试</description>
+    <link>http://localhost:4000/</link>
+    <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
+    <pubDate>Wed, 15 Mar 2017 17:58:39 +0800</pubDate>
+    <lastBuildDate>Wed, 15 Mar 2017 17:58:39 +0800</lastBuildDate>
+    <generator>Jekyll v3.4.2</generator>
+    
+      <item>
+        <title></title>
+        <description>&lt;p&gt;Jeekyll可以快速的将一个平文本文件转换成静态的网页或博客，只需要大概十五分钟的时间，我们就可以有一个自己的博客啦，默认的样式也很简洁大方吧。
+&lt;img src=&quot;http://i.imgur.com/yfviaFk.png&quot; alt=&quot;&quot; /&gt; &lt;br /&gt;
+那么我开始安装Jekyll吧&lt;/p&gt;
+&lt;h2 id=&quot;1ruby安装&quot;&gt;1.Ruby安装&lt;/h2&gt;
+&lt;p&gt;下载地址  [Ruby-Install-Download]: http://rubyinstaller.org/downloads/&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://i.imgur.com/uRu8xXz.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
+选择适合自己电脑的版本进行下载就好啦，我选的是最新的版本Ruby 2.3.3(x64) 记得安装的时候要钩上“&lt;strong&gt;Add Ruby executables to your PATH”&lt;/strong&gt;选项，这样就会自动的添加环境变量咯。
+装好之后尝试输入ruby -v 应该可以显示对应的版本信息。&lt;/p&gt;
+&lt;h2 id=&quot;2devkit安装&quot;&gt;2.DevKit安装&lt;/h2&gt;
+&lt;p&gt;还是再刚才的页面，往下翻就可以看到Devkit的下载啦，要注意下载的DevKit版本要和ruby版本对应，之前咱们下过的版本是高于2.0的所以下最后一个就好了。
+&lt;img src=&quot;http://i.imgur.com/fjs9QwT.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;下载完成后，点击exe进行安装，在所选择的安装目录下输入如下指令：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;ruby dk.rb init&lt;/li&gt;
+  &lt;li&gt;ruby dk.rb install
+    &lt;h2 id=&quot;3-jekyll安装&quot;&gt;3. Jekyll安装&lt;/h2&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;    
+&lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;因为默认的下载源很有可能被禁止了，所以要更换&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gem&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;源&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;gem&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sources&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;remove&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;https&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:/&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rubygems&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;org&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;gem&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sources&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;https&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:/&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ruby&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;taobao&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;org&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;
+
+&lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;查看&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gem&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;源是否更新成功&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;gem&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sources&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;l&lt;/span&gt;
+
+&lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;更新&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gem&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;gem&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;update&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;system&lt;/span&gt;
+
+&lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;安装&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;jekyll&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;gem&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jekyll&lt;/span&gt;  &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;4安装python的相关环境&quot;&gt;4.安装Python的相关环境&lt;/h2&gt;
+
+&lt;p&gt;在此就不再赘述Python啦，网上有好多教程。
+要记得装[Easy Install]和[Pygments]&lt;/p&gt;
+&lt;h2 id=&quot;5jekyll的启动&quot;&gt;5.Jekyll的启动&lt;/h2&gt;
+&lt;p&gt;终于要看到效果啦，&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;      
+&lt;span class=&quot;n&quot;&gt;gem&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jekyll&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bundler&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;jekyll&lt;/span&gt; &lt;span class=&quot;kp&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;my&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;awesome&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;site&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;cd&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;my&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;awesome&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;site&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;bundle&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;exec&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jekyll&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;serve&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;# =&amp;gt; Now browse to http://localhost:4000 &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;是不是已经看到自己的博客了呢。&lt;/p&gt;
+
+</description>
+        <pubDate>Wed, 15 Mar 2017 17:58:39 +0800</pubDate>
+        <link>http://localhost:4000/2017/03/15/2017-03-15-Jekyll%E5%AE%89%E8%A3%85%E6%97%B6%E5%8F%AF%E8%83%BD%E5%87%BA%E7%8E%B0%E7%9A%84%E9%97%AE%E9%A2%98/</link>
+        <guid isPermaLink="true">http://localhost:4000/2017/03/15/2017-03-15-Jekyll%E5%AE%89%E8%A3%85%E6%97%B6%E5%8F%AF%E8%83%BD%E5%87%BA%E7%8E%B0%E7%9A%84%E9%97%AE%E9%A2%98/</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>Welcome to Jekyll!</title>
+        <description>&lt;p&gt;You’ll find this post in your &lt;code class=&quot;highlighter-rouge&quot;&gt;_posts&lt;/code&gt; directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run &lt;code class=&quot;highlighter-rouge&quot;&gt;jekyll serve&lt;/code&gt;, which launches a web server and auto-regenerates your site when a file is updated.&lt;/p&gt;
+
+&lt;p&gt;To add new posts, simply add a file in the &lt;code class=&quot;highlighter-rouge&quot;&gt;_posts&lt;/code&gt; directory that follows the convention &lt;code class=&quot;highlighter-rouge&quot;&gt;YYYY-MM-DD-name-of-post.ext&lt;/code&gt; and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.&lt;/p&gt;
+
+&lt;p&gt;Jekyll also offers powerful support for code snippets:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;print_hi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Hi, &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;print_hi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'Tom'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;#=&amp;gt; prints 'Hi, Tom' to STDOUT.&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Check out the &lt;a href=&quot;https://jekyllrb.com/docs/home&quot;&gt;Jekyll docs&lt;/a&gt; for more info on how to get the most out of Jekyll. File all bugs/feature requests at &lt;a href=&quot;https://github.com/jekyll/jekyll&quot;&gt;Jekyll’s GitHub repo&lt;/a&gt;. If you have questions, you can ask them on &lt;a href=&quot;https://talk.jekyllrb.com/&quot;&gt;Jekyll Talk&lt;/a&gt;.&lt;/p&gt;
+
+</description>
+        <pubDate>Wed, 15 Mar 2017 14:52:08 +0800</pubDate>
+        <link>http://localhost:4000/jekyll/update/2017/03/15/welcome-to-jekyll/</link>
+        <guid isPermaLink="true">http://localhost:4000/jekyll/update/2017/03/15/welcome-to-jekyll/</guid>
+        
+        <category>Jekyll</category>
+        
+        
+        <category>jekyll</category>
+        
+        <category>update</category>
+        
+      </item>
+    
+      <item>
+        <title>NVCC编译指令</title>
+        <description>&lt;p&gt;&lt;img src=&quot;http://i.imgur.com/52eiF8B.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;h1 id=&quot;nvcc-build-configurations&quot;&gt;NVCC Build Configurations&lt;/h1&gt;
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;nvcc &amp;lt;filename&amp;gt;.cu [-o &amp;lt;executable&amp;gt;]&lt;/code&gt;&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Builds release mode&lt;br /&gt;
+&lt;code class=&quot;highlighter-rouge&quot;&gt;nvcc -g &amp;lt;filename&amp;gt;.cu  &lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;Build debug mode&lt;/li&gt;
+  &lt;li&gt;can debug host code but not device code&lt;br /&gt;
+` nvcc -deviceemu &lt;filename&gt;.cu`&lt;/filename&gt;&lt;/li&gt;
+  &lt;li&gt;Builds device emulation mode&lt;/li&gt;
+  &lt;li&gt;All code runs on CPU, no debug symbols&lt;br /&gt;
+` nvcc -deviceemu -g &lt;filename&gt;.cu`&lt;/filename&gt;&lt;/li&gt;
+  &lt;li&gt;Builds debug device emulation mode&lt;/li&gt;
+  &lt;li&gt;All code runs on CPU,with debug symbols&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Tue, 14 Mar 2017 00:00:00 +0800</pubDate>
+        <link>http://localhost:4000/2017/03/14/%E7%BC%96%E8%AF%91%E6%8C%87%E4%BB%A4NVCC%E6%8C%87%E4%BB%A4/</link>
+        <guid isPermaLink="true">http://localhost:4000/2017/03/14/%E7%BC%96%E8%AF%91%E6%8C%87%E4%BB%A4NVCC%E6%8C%87%E4%BB%A4/</guid>
+        
+        <category>NVCC</category>
+        
+        <category>debug</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>CUDA开发环境配置</title>
+        <description>&lt;p&gt;我偏好使用Ubuntu,那么首先来查看一下所使用的版本 &lt;br /&gt;
+    &lt;code class=&quot;highlighter-rouge&quot;&gt;$ cat /etc/issue   &lt;/code&gt;&lt;br /&gt;
+然后我们来了解一下所使用的GPU版本和对nvidia的支持   &lt;br /&gt;
+   ` $lspci | grep -i nvidia   ` 
+&lt;img src=&quot;http://i.imgur.com/LJlRuY6.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
+之后查看gcc的支持&lt;br /&gt;
+&lt;img src=&quot;http://i.imgur.com/CMa3poc.png&quot; alt=&quot;&quot; /&gt;
+&lt;img src=&quot;http://i.imgur.com/GOr87ja.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
+  可以看到gcc的版本是5.4.0。  之后开始下载CUDA Toolkit，其中下载链接为&lt;a href=&quot;https://developer.nvidia.com/cuda-downloads&quot; title=&quot;CUDA toolkit下载链接&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;https://developer.nvidia.com/cuda-downloads&lt;/code&gt;&lt;/a&gt;&lt;br /&gt;
+安装所需的支持库&lt;br /&gt;
+&lt;img src=&quot;http://i.imgur.com/OC32tZ6.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
+按照相应的系统支持的版本进行下载&lt;br /&gt;
+&lt;img src=&quot;http://i.imgur.com/3oo0wnN.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
+之后就可以把下载好的.run文件放在合适的目录，准备进行安装和环境配置。 首先在进行实际的软件开发之前，要安装一些必要的支持库&lt;br /&gt;
+&lt;img src=&quot;http://i.imgur.com/1QYelb5.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
+卸载在这台机器上之前装过的其他版本的NVIDIA的驱动  &lt;br /&gt;
+$ sudo nvidia-uninstall&lt;br /&gt;
+&lt;img src=&quot;http://i.imgur.com/Y8u8nCk.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
+同时也清除原来的nvidia支持库&lt;br /&gt;
+屏蔽nouveau的库&lt;br /&gt;
+   ` $ cd /etc/modprobe.d/  `
+找到 nvidia-installer-disable-nouveau.conf里面&lt;br /&gt;
+   ` blacklist nouveau  `
+   ` options nouveau modeset=0    `
+通过这两句话 nvidia的安装包会主动把nouveau的驱动库屏蔽掉，之后重启系统
+运行.run文件 
+&lt;img src=&quot;http://i.imgur.com/DNCc3nR.png&quot; alt=&quot;&quot; /&gt;
+&lt;code class=&quot;highlighter-rouge&quot;&gt;$sudo sh cuda_8.0.61_375.26_linux.run &lt;/code&gt; &lt;br /&gt;
+Enter Toolkit Location&lt;br /&gt;
+ [ default is /usr/local/cuda-8.0 ]:&lt;br /&gt;
+Enter CUDA Samples Location&lt;br /&gt;
+ [ default is /home/dutoeserver ]:         &lt;br /&gt;
+可以看到提示信息，要修改PATH和LD_LIBRARY_PATH    &lt;br /&gt;
+    &lt;code class=&quot;highlighter-rouge&quot;&gt;PATH includes /usr/local/cuda-8.0/bin&lt;/code&gt;
+    ` -   LD_LIBRARY_PATH includes /usr/local/cuda-8.0/lib64, or, add /usr/local/cuda-8.0/lib64 to /etc/ld.so.conf and run ldconfig as root&lt;code class=&quot;highlighter-rouge&quot;&gt;
+回到根目录下 vim .bashrc   依照下图制定路径后 &lt;/code&gt;source .bashrc` 使新配置生效&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://i.imgur.com/VWk1iLl.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;之后通过nvcc –version指令可以看到，我们配置的是Cuda compilation tools, release 8.0, V8.0.61&lt;br /&gt;
+&lt;strong&gt;至此，我们就完成了CUDA的编译环境和SDK的安装，是不是好棒棒！&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;现在，我们就可以看到NVIDIA_CUDA-8.0_Samples，文件夹里面就是NVIDIA提供的在不同应用领域的官方示例，我们可以通过阅读官方示例的代码来进行学习个提高。 同时也可以使用官方示例来验证我们的环境配置是否正确。
+&lt;img src=&quot;http://i.imgur.com/HgO3JWT.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
+make一下会看到nvcc的工具正在编译包里面的示例           &lt;br /&gt;
+&lt;img src=&quot;http://i.imgur.com/LT3bKXX.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
+测试一下CUDA运行&lt;br /&gt;
+&lt;img src=&quot;http://i.imgur.com/YScQ2hn.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+</description>
+        <pubDate>Mon, 06 Mar 2017 14:52:08 +0800</pubDate>
+        <link>http://localhost:4000/2017/03/06/CUDA%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/</link>
+        <guid isPermaLink="true">http://localhost:4000/2017/03/06/CUDA%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/</guid>
+        
+        <category>CUDA</category>
+        
+        <category>GPU</category>
+        
+        <category>环境配置</category>
+        
+        
+      </item>
+    
+  </channel>
+</rss>
