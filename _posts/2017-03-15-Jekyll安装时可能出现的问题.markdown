@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Jekyll使用"
+title:  "Jekyll GitPage"
 date:   2017-03-15 14:52:08 +0800
 header-img: img/post-bg-js-module.jpg
 categories: true
