@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Let's install Jekyll!"
+title:  " Don't have jekyll-paginate  "
 date:   2017-03-15 14:52:08 +0800
 categories: jekyll update
 tags:
