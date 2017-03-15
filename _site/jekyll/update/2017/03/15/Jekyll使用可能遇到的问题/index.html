@@ -10,7 +10,7 @@
     <meta name="keywords"  content="WEB, CDUA, 大数据, PHP">
     <meta name="theme-color" content="#000000">
     
-    <title>Let's install Jekyll! - 阿坤的博客 | KUN Blog</title>
+    <title> Don't have jekyll-paginate   - 阿坤的博客 | KUN Blog</title>
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="/pwa/manifest.json">
@@ -19,7 +19,7 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="http://localhost:4000/jekyll/update/2017/03/15/Jekyll%E5%AE%89%E8%A3%85-%E5%89%AF%E6%9C%AC/">
+    <link rel="canonical" href="http://localhost:4000/jekyll/update/2017/03/15/Jekyll%E4%BD%BF%E7%94%A8%E5%8F%AF%E8%83%BD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -173,7 +173,7 @@
                         <a class="tag" href="/tags/#Jekyll" title="Jekyll">Jekyll</a>
                         
                     </div>
-                    <h1>Let's install Jekyll!</h1>
+                    <h1> Don't have jekyll-paginate  </h1>
                     
                     
                     <h2 class="subheading"></h2>
@@ -196,60 +196,24 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-				<p>Jeekyll可以快速的将一个平文本文件转换成静态的网页或博客，只需要大概十五分钟的时间，我们就可以有一个自己的博客啦，默认的样式也很简洁大方吧。
-<img src="http://i.imgur.com/yfviaFk.png" alt="" /> <br />
-那么我开始安装Jekyll吧</p>
-<h2 id="1ruby安装">1.Ruby安装</h2>
-<p>下载地址  [Ruby-Install-Download]: http://rubyinstaller.org/downloads/</p>
+				<p>在执行<code class="highlighter-rouge">bundle exec jekyll serve</code>之后会报如下错误：</p>
 
-<p><img src="http://i.imgur.com/uRu8xXz.png" alt="" /><br />
-选择适合自己电脑的版本进行下载就好啦，我选的是最新的版本Ruby 2.3.3(x64) 记得安装的时候要钩上“<strong>Add Ruby executables to your PATH”</strong>选项，这样就会自动的添加环境变量咯。
-装好之后尝试输入ruby -v 应该可以显示对应的版本信息。</p>
-<h2 id="2devkit安装">2.DevKit安装</h2>
-<p>还是再刚才的页面，往下翻就可以看到Devkit的下载啦，要注意下载的DevKit版本要和ruby版本对应，之前咱们下过的版本是高于2.0的所以下最后一个就好了。
-<img src="http://i.imgur.com/fjs9QwT.png" alt="" /></p>
+<div class="highlighter-rouge"><pre class="highlight"><code>Dependency Error: Yikes! It looks like you don’t have jekyll-paginate     or one of its dependencies installed. In order to use Jekyll as currently configured, you’ll need to install this gem. The full error message from Ruby is: ‘cannot load such file – jekyll-paginate’ If you run into trouble, you can find helpful resources at Getting Help
 
-<p>下载完成后，点击exe进行安装，在所选择的安装目录下输入如下指令：</p>
-<ul>
-  <li>ruby dk.rb init</li>
-  <li>ruby dk.rb install
-    <h2 id="3-jekyll安装">3. Jekyll安装</h2>
-  </li>
-</ul>
+jekyll 3.1.2 | Error: jekyll-paginate 我在最初使用的时候出现了这个错误。 前提是已经使用`gem install jekyll-paginate`安装了jekyll-paginate,并提示安装成功。并且使用`gem listkeyi` 查看到。 ## 解决方法## 1. 在_config.yml文件中添加如下代码
+</code></pre>
+</div>
 
-<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby">    
-<span class="sr">//</span><span class="err">因为默认的下载源很有可能被禁止了，所以要更换</span><span class="n">gem</span><span class="err">源</span>
-<span class="n">gem</span> <span class="n">sources</span> <span class="o">--</span><span class="n">remove</span> <span class="n">https</span><span class="ss">:/</span><span class="o">/</span><span class="n">rubygems</span><span class="p">.</span><span class="nf">org</span><span class="o">/</span>
-<span class="n">gem</span> <span class="n">sources</span> <span class="o">-</span><span class="n">a</span> <span class="n">https</span><span class="ss">:/</span><span class="o">/</span><span class="n">ruby</span><span class="p">.</span><span class="nf">taobao</span><span class="p">.</span><span class="nf">org</span><span class="o">/</span>
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby">   
+<span class="ss">gems: 
+  </span><span class="o">-</span> <span class="n">jekyll</span><span class="o">-</span><span class="n">paginate</span>
+<span class="ss">exclude:
+  </span><span class="o">-</span> <span class="no">Gemfile</span>
+  <span class="o">-</span> <span class="no">Gemfile</span><span class="p">.</span><span class="nf">lock</span>
+  <span class="o">-</span> </code></pre></figure>
 
-<span class="sr">//</span><span class="err">查看</span><span class="n">gem</span><span class="err">源是否更新成功</span>
-<span class="n">gem</span> <span class="n">sources</span> <span class="o">-</span><span class="n">l</span>
-
-<span class="sr">//</span><span class="err">更新</span><span class="n">gem</span>
-<span class="n">gem</span> <span class="n">update</span> <span class="o">--</span><span class="nb">system</span>
-
-<span class="sr">//</span><span class="err">安装</span><span class="n">jekyll</span>
-<span class="n">gem</span> <span class="n">install</span> <span class="n">jekyll</span>  </code></pre></figure>
-
-<h2 id="4安装python的相关环境">4.安装Python的相关环境</h2>
-
-<p>在此就不再赘述Python啦，网上有好多教程。
-要记得装[Easy Install]和[Pygments]</p>
-<h2 id="5jekyll的启动">5.Jekyll的启动</h2>
-<p>终于要看到效果啦，</p>
-
-<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby">      
-<span class="n">gem</span> <span class="n">install</span> <span class="n">jekyll</span> <span class="n">bundler</span>
-
-<span class="n">jekyll</span> <span class="kp">new</span> <span class="n">my</span><span class="o">-</span><span class="n">awesome</span><span class="o">-</span><span class="n">site</span>
-
-<span class="n">cd</span> <span class="n">my</span><span class="o">-</span><span class="n">awesome</span><span class="o">-</span><span class="n">site</span>
-
-<span class="n">bundle</span> <span class="nb">exec</span> <span class="n">jekyll</span> <span class="n">serve</span>
-
-<span class="c1"># =&gt; Now browse to http://localhost:4000 </span></code></pre></figure>
-
-<p>是不是已经看到自己的博客了呢。</p>
+<p>2.编辑Gemfilewen在其中添加 
+<code class="highlighter-rouge">gem "jekyll-paginate"</code></p>
 
 
                 <hr style="visibility: hidden;">
