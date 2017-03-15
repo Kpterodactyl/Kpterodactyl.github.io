@@ -5,7 +5,7 @@ header-img: img/post-bg-rwd.jpg
 email: 167310@supinfo.com
 description: "每个胜利背后都有许多尝试"
 keyword: "WEB, CDUA, 大数据, PHP"
-url: "https://superkunkunkun.github.io/akun.github.io/"          # your host, for absolute URL
+url: "https://superkunkunkun.github.io/akun.github.io/"         
 baseurl: ""      # for example, '/blog' if your blog hosted on 'host/blog'
 
 
@@ -32,7 +32,7 @@ github_username:    superkunkunkun
 # from 2016, 'pygments' is unsupported on GitHub Pages. Use 'rouge' for highlighting instead.
 highlighter: rouge
 permalink: pretty
-paginate: 5
+paginate: 10
 exclude: ["less","node_modules","Gruntfile.js","package.json","README.md"]
 anchorjs: true                          # if you want to customize anchor. check out line:181 of `post.html`
 
@@ -50,7 +50,7 @@ gems: [jekyll-paginate]
 # document: http://jekyllrb.com/docs/configuration/#kramdown
 markdown: kramdown
 kramdown:
-  input: GFM                            # use Github Flavored Markdown !important
+  input: GFM                    
 
 
 
@@ -79,7 +79,7 @@ ga_domain: auto
 
 # Featured Tags
 featured-tags: true                     # whether or not using Feature-Tags
-featured-condition-size: 1              # A tag will be featured if the size of it is more than this condition value
+featured-condition-size: 3              # A tag will be featured if the size of it is more than this condition value
 
 
 
