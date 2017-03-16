@@ -10,7 +10,7 @@
     <meta name="keywords"  content="WEB, CDUA, 大数据, PHP">
     <meta name="theme-color" content="#000000">
     
-    <title>Welcome to Jekyll! - 阿坤的博客 | KUN Blog</title>
+    <title> Don't have jekyll-paginate   - 阿坤的博客 | KUN Blog</title>
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="/pwa/manifest.json">
@@ -19,7 +19,7 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="http://localhost:4000/jekyll/update/2017/03/15/welcome-to-jekyll/">
+    <link rel="canonical" href="http://localhost:4000/jekyll/2017/03/15/Jekyll%E4%BD%BF%E7%94%A8%E5%8F%AF%E8%83%BD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -170,10 +170,10 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                        <a class="tag" href="/tags/#Jekyll" title="Jekyll">Jekyll</a>
+                        <a class="tag" href="/tags/#Jekyll problem" title="Jekyll problem">Jekyll problem</a>
                         
                     </div>
-                    <h1>Welcome to Jekyll!</h1>
+                    <h1> Don't have jekyll-paginate  </h1>
                     
                     
                     <h2 class="subheading"></h2>
@@ -196,20 +196,24 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-				<p>You’ll find this post in your <code class="highlighter-rouge">_posts</code> directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run <code class="highlighter-rouge">jekyll serve</code>, which launches a web server and auto-regenerates your site when a file is updated.</p>
+				<p>在执行<code class="highlighter-rouge">bundle exec jekyll serve</code>之后会报如下错误：</p>
 
-<p>To add new posts, simply add a file in the <code class="highlighter-rouge">_posts</code> directory that follows the convention <code class="highlighter-rouge">YYYY-MM-DD-name-of-post.ext</code> and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>Dependency Error: Yikes! It looks like you don’t have jekyll-paginate     or one of its dependencies installed. In order to use Jekyll as currently configured, you’ll need to install this gem. The full error message from Ruby is: ‘cannot load such file – jekyll-paginate’ If you run into trouble, you can find helpful resources at Getting Help
 
-<p>Jekyll also offers powerful support for code snippets:</p>
+jekyll 3.1.2 | Error: jekyll-paginate 我在最初使用的时候出现了这个错误。 前提是已经使用`gem install jekyll-paginate`安装了jekyll-paginate,并提示安装成功。并且使用`gem listkeyi` 查看到。 ## 解决方法## 1. 在_config.yml文件中添加如下代码
+</code></pre>
+</div>
 
-<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">def</span> <span class="nf">print_hi</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
-  <span class="nb">puts</span> <span class="s2">"Hi, </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">"</span>
-<span class="k">end</span>
-<span class="n">print_hi</span><span class="p">(</span><span class="s1">'Tom'</span><span class="p">)</span>
-<span class="c1">#=&gt; prints 'Hi, Tom' to STDOUT.</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby">   
+<span class="ss">gems: 
+  </span><span class="o">-</span> <span class="n">jekyll</span><span class="o">-</span><span class="n">paginate</span>
+<span class="ss">exclude:
+  </span><span class="o">-</span> <span class="no">Gemfile</span>
+  <span class="o">-</span> <span class="no">Gemfile</span><span class="p">.</span><span class="nf">lock</span>
+  <span class="o">-</span> </code></pre></figure>
 
-<p>Check out the <a href="https://jekyllrb.com/docs/home">Jekyll docs</a> for more info on how to get the most out of Jekyll. File all bugs/feature requests at <a href="https://github.com/jekyll/jekyll">Jekyll’s GitHub repo</a>. If you have questions, you can ask them on <a href="https://talk.jekyllrb.com/">Jekyll Talk</a>.</p>
-
+<p>2.编辑Gemfilewen在其中添加 
+<code class="highlighter-rouge">gem "jekyll-paginate"</code></p>
 
 
                 <hr style="visibility: hidden;">
@@ -220,12 +224,19 @@
                 <ul class="pager">
                     
                     <li class="previous">
-                        <a href="/jekyll/update/2017/03/15/Jekyll%E5%AE%89%E8%A3%85/" data-toggle="tooltip" data-placement="top" title="Let's install Jekyll!">
+                        <a href="/2017/03/14/%E7%BC%96%E8%AF%91%E6%8C%87%E4%BB%A4NVCC%E6%8C%87%E4%BB%A4/" data-toggle="tooltip" data-placement="top" title="NVCC编译指令">
                         Previous<br>
-                        <span>Let's install Jekyll!</span>
+                        <span>NVCC编译指令</span>
                         </a>
                     </li>
                     
+                    
+                    <li class="next">
+                        <a href="/jekyll/2017/03/15/Jekyll%E5%AE%89%E8%A3%85/" data-toggle="tooltip" data-placement="top" title="Let's install Jekyll!">
+                        Next<br>
+                        <span>Let's install Jekyll!</span>
+                        </a>
+                    </li>
                     
                 </ul>
 
@@ -251,6 +262,8 @@
                     <hr class="hidden-sm hidden-xs">
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
+        				
+                            
         				
                             
         				
