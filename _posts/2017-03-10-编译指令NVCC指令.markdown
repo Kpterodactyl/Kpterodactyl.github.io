@@ -5,7 +5,7 @@ subtitle:   NVCC编译选项
 date:       2017-03-14
 author:     Memory
 header-img: img/post-bg-debug.png
-catalog: true
+catalog: NVCC
 tags:
     - NVCC
     - debug

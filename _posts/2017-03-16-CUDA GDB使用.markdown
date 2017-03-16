@@ -1,0 +1,47 @@
+---
+layout: post
+title:  "How to use cuda-gdb debug"
+date:   2017-03-15 14:52:08 +0800
+categories: CUDA
+tags:
+    - Jekyll
+---
+开始学习cuda编程了，就会遇到好多的问题，怎么知道是哪里出问题了呢，CUDA自带的cuda-gdb就会帮到我们啦。
+首先输入`cuda-gdb`就会进入这样的模式
+{% highlight ruby %}
+server@Server-1:~/xtk/Exercises/Test1$ cuda-gdb  
+NVIDIA (R) CUDA Debugger  
+8.0 release  
+Portions Copyright (C) 2007-2016 NVIDIA Corporation
+GNU gdb (GDB) 7.6.2
+Copyright (C) 2013 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "x86_64-unknown-linux-gnu".
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>.
+(cuda-gdb)
+{% endhighlight %}
+
+{% highlight ruby %}
+(cuda-gdb) set cuda software_preemption on
+(cuda-gdb) file a.out 
+Reading symbols from /home/dutoeserver/xtk/Exercises/Test1/a.out...done.
+(cuda-gdb) b 2
+Breakpoint 1 at 0x402bf2: file myFirstKernel.cu, line 2.
+(cuda-gdb) r
+{% highlight ruby %}
+具体解释一下：
+在gdb中所有不冲突的指令都可以输入简写，即第一个首字母
+1.允许在图形界面模式下进行调试。
+`set cuda software-preemption on`  
+2.指定要调试的.out文件   `file a.out`  
+3.`b 20 ` 从20行设置断点 b 作为break的简写  
+4.r 运行  
+5.n 继续执行下一步 next 5 往后执行5行  
+6.p result 输出result变量的值 printf
+7.quit 退出调试
+
+

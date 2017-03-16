@@ -5,7 +5,7 @@ subtitle:   Ubuntu环境下配置CUDA开发环境
 date:       2017-03-06  14:52:08 +0800
 author:     Memory
 header-img: img/post-bg-js-module.jpg
-catalog: true
+catalog: CUDA
 tags:
     - CUDA
     - GPU

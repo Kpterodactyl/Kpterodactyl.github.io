@@ -2,9 +2,9 @@
 layout: post
 title:  " Don't have jekyll-paginate  "
 date:   2017-03-15 14:52:08 +0800
-categories: jekyll update
+categories: jekyll
 tags:
-    - Jekyll
+    - Jekyll problem
 ---
 在执行`bundle exec jekyll serve`之后会报如下错误：
 
