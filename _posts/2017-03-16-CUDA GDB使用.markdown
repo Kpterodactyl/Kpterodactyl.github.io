@@ -32,7 +32,7 @@ Reading symbols from /home/dutoeserver/xtk/Exercises/Test1/a.out...done.
 (cuda-gdb) b 2
 Breakpoint 1 at 0x402bf2: file myFirstKernel.cu, line 2.
 (cuda-gdb) r
-{% highlight ruby %}
+{% endhighlight %}
 具体解释一下：
 在gdb中所有不冲突的指令都可以输入简写，即第一个首字母
 1.允许在图形界面模式下进行调试。
