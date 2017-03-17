@@ -1,10 +1,11 @@
 ---
 layout: post
 title:  "Let's install Jekyll!"
-date:   2017-03-15 14:52:08 +0800
+date:   2017-03-13 08:52:08 +0800
 categories: jekyll
 tags:
     - Jekyll
+    - Blog
 ---
 Jeekyll可以快速的将一个平文本文件转换成静态的网页或博客，只需要大概十五分钟的时间，我们就可以有一个自己的博客啦，默认的样式也很简洁大方吧。
 ![](http://i.imgur.com/yfviaFk.png)   
