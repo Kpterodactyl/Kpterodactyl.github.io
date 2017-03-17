@@ -1,0 +1,119 @@
+---
+layout: post
+title:  "CUDA编程基础知识+示例"
+date:   2017-03-17 18:53:23 +0800
+categories: CUDA
+tags:
+    - CUDA
+    - GPU
+---
+开始学习CUDA编程啦，觉得通过具体的例子来解释CUDA编程的关键点会好很多吧。这是我开始学习的第一个例子，求立方和，以下是完整的代码，具体的解释在各行中有注释，希望对大家会有帮助。  
+通过以下形式启动核函数：   
+add<<<5,1>(param1,param2.....)  
+可以认为运行时将创建核函数的5个副本，并以并行的方式来运行
+
+{% highlight ruby %}
+#include <stdio.h>
+#include <assert.h>
+#define DATA_SIZE 1048576
+
+int data[DATA_SIZE];
+
+void GenerateNumbers(int *number, int size)
+{
+    for (int i = 0; i < size; i++) {
+        srand(3);
+        number[i] = rand() % 10;
+    }
+
+}
+// Simple utility function to check for CUDA runtime errors
+void checkCUDAError(const char *msg);
+
+// Part 3 of 5: implement the kernel
+__global__ void myFirstKernel(int *num, int *result)
+{
+    int sum = 0;
+       //计算位于这个索引处的数据，dim3为二维数组，要通过x和y来对应数据位置，这样才可以给每个线程块制定运算的数据
+       //将threadIdx/BlockIdx映射到像素位置
+       int x = threadIdx.x + blockIdx.x * blockDim.x;
+       int y = threadIdx.y + blockIdx.y * blockDim.y;
+       //blockIdx.y*blockDim.y代表每一横行的线程数
+       int tid = x + y * blockDim.x * gridDim.x;
+        for (tid = 0; tid < DATA_SIZE; tid++) {
+            sum += num[tid] * num[tid] * num[tid];
+        }
+        *result = sum;
+}
+
+int main( ) 
+
+{    
+    //pointer for host memory
+    int *h_a; 
+    //pointer for device memory(GPU)
+    int *d_a;
+    //GPU上计算结果定义并分配内存
+    int *result;
+    cudaMalloc((void**)&result, sizeof(int));
+
+    // Part 1 of 5: allocate host and device memory
+    size_t memSize =  sizeof(int)* DATA_SIZE;
+    h_a = (int *) malloc(memSize);
+    //cudaMalloc()第一个参数是一个指针，用于保存新分配内存地址的变量，第二个是内存大小
+    cudaMalloc((void**)&d_a,memSize);
+    //调用生成随机数的函数，生成随机数的位置在host端*h_a，在这里要注意分配内存的顺序
+    //该函数中的参数h_a一定要先分配内存
+    GenerateNumbers(h_a,DATA_SIZE);
+    //cudaMemcpy（目的，源，要拷贝的大小，方向）
+    //将h_a中的生成的随机数传输给d_a，源是host
+    cudaMemcpy(d_a,h_a,sizeof(int)* DATA_SIZE, cudaMemcpyHostToDevice);
+
+    // Part 2 of 5: configure and launch kernel
+    //通过dim3 声明一个二维格，其实是三维但是CUDA运行时会自动把第三维制定为1
+    dim3 dimGrid(2,4);
+    dim3 dimBlock(4,16);
+    //myFirstKernel参数即要传给核函数的值
+    myFirstKernel<<< dimGrid,dimBlock >>>(d_a,result);
+
+    // block until the device has completed
+    cudaThreadSynchronize();
+
+    //printf("GPUsum: %d\n", *result);
+    // check if kernel execution generated an error
+    checkCUDAError("kernel execution");
+
+    int SumResult;
+
+    // Part 4 of 5: device to host copy
+    cudaMemcpy(&SumResult,result,sizeof(int),cudaMemcpyDeviceToHost);
+
+    // Check for any CUDA errors
+    checkCUDAError("cudaMemcpy");
+
+    // Part 5 of 5: verify the data returned to the host is correct
+    //常会用到assert()断言判断计算是否正确
+    printf("Sum Result: %d \n", SumResult);
+
+    // free device memory
+    cudaFree(d_a);
+    cudaFree(result);
+
+    // free host memory
+    free(h_a);
+
+    return 0;
+
+        }
+void checkCUDAError(const char *msg)
+{
+    cudaError_t err = cudaGetLastError();
+    if( cudaSuccess != err) 
+    {
+        fprintf(stderr, "Cuda error: %s: %s.\n", msg, cudaGetErrorString( err) );
+        exit(-1);
+    }                         
+}
+
+{% endhighlight %}
+
