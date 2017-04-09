@@ -25,7 +25,7 @@ Docker 可以让开发者打包他们的应用以及依赖包到一个轻量级�
 
 基础镜像可以用于创建Docker容器。镜像可以非常基础，仅仅包含操作系统比如CentOS7.1；当你在使用Dockerfile构建镜像的时候，每一个命令都会在前一个命令的基础上形成一个新层。   
 
-**DockerFile指令：**
+## **DockerFile指令：** ##
 
  
 1. From 首先要有基础父镜像如 `FROM centos：centos 7.1.1503`
@@ -37,7 +37,7 @@ Docker 可以让开发者打包他们的应用以及依赖包到一个轻量级�
 6. EXPOSE 提供容器暴露端口号，如 EXPOSE 22
 7. ENTRYPOINT  容器启动后执行该命令，每个DockerFile只会有最后一条ENTERPOINT生效。 
 8. VOLUME 在建立mysql时或需要保持数据时使用，创建一个可以从本地和容器的映射，当容器删除后数据库仍然保留
-
+## **Docker指令：** ##
 在写好Dockerfile之后，就可以通过**docker build**开始创建镜像啦
 
 {% highlight ruby %}
