@@ -55,7 +55,7 @@ docker build -t csphere/centos:7.1 ./path
 - -d 在后端启动，返回容器的长ID号
 - -p 2222:2222 将容器的22端口映射到主机的2222端口 
 - -P 22 将容器的22端口映射到主机随机端口
-- --name="base": 为容器指定一个名称
+- --name base: 为容器指定一个名称
 实例：  
 
 ![](http://i.imgur.com/5lz2Tg4.png)
