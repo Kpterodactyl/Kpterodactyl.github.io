@@ -6,7 +6,16 @@ categories: CUDA
 tags:
     - Jekyll
 ---
-开始学习cuda编程了，就会遇到好多的问题，怎么知道是哪里出问题了呢，CUDA自带的cuda-gdb就会帮到我们啦。
+开始学习cuda编程了，就会遇到好多的问题，怎么知道是哪里出问题了呢，CUDA自带的cuda-gdb就会帮到我们啦。NVIDA对开源的GUN调试器进行了扩展，CUDA-GDB包含以下功能：
+
+
+- 观察CUDA状态，例如已安装的GPU及其支持的功能
+- 在CUDA C中设置断点
+- 分享GPU中内存，包括全局内存和共享内存
+- 单步调试
+- 分析当前驻留在GPU上的线程块和线程
+- 设置断点调试
+
 首先输入`cuda-gdb`就会进入这样的模式
 {% highlight ruby %}
 server@Server-1:~/xtk/Exercises/Test1$ cuda-gdb  
