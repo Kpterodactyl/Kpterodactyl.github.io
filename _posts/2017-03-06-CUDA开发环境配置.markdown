@@ -19,7 +19,9 @@ tags:
 之后查看gcc的支持  
 ![](http://i.imgur.com/CMa3poc.png)
 ![](http://i.imgur.com/GOr87ja.png)  
-  可以看到gcc的版本是5.4.0。  之后开始下载CUDA Toolkit，其中下载链接为[`https://developer.nvidia.com/cuda-downloads`](https://developer.nvidia.com/cuda-downloads "CUDA toolkit下载链接")  
+  可以看到gcc的版本是5.4.0。 
+# 准备工作 # 
+之后开始下载CUDA Toolkit，其中下载链接为[`https://developer.nvidia.com/cuda-downloads`](https://developer.nvidia.com/cuda-downloads "CUDA toolkit下载链接")  
 安装所需的支持库  
 ![](http://i.imgur.com/OC32tZ6.png)  
 按照相应的系统支持的版本进行下载  
@@ -52,6 +54,8 @@ Enter CUDA Samples Location
 
 之后通过nvcc --version指令可以看到，我们配置的是Cuda compilation tools, release 8.0, V8.0.61  
 **至此，我们就完成了CUDA的编译环境和SDK的安装，是不是好棒棒！**
+
+# 示例 #
 
 现在，我们就可以看到NVIDIA_CUDA-8.0_Samples，文件夹里面就是NVIDIA提供的在不同应用领域的官方示例，我们可以通过阅读官方示例的代码来进行学习个提高。 同时也可以使用官方示例来验证我们的环境配置是否正确。
 ![](http://i.imgur.com/HgO3JWT.png)  
