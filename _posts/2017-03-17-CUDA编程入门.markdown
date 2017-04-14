@@ -1,12 +1,53 @@
 ---
 layout: post
-title:  "CUDA编程基础知识+示例"
+title:  CUDA编程基础知识+示例
 date:   2017-03-17 18:53:23 +0800
+author:     Memory
+header-img: img/post-bg-js-module.jpg
 categories: CUDA
 tags:
     - CUDA
     - GPU
 ---
+一个CUDA程序一般分为两部分
+
+
+- Host 运行在CPU端，逻辑判断密集型
+
+
+- Device 运行在GPU端，计算密集型
+
+
+**内存分配**：无论是CPU端的主存还是GPU端的显存，都必须通过CUDA在主机端进行统一分配
+
+
+**CUDA编程模型：**
+GPU与CPU交互通过PCIE总线进行互联，CUDA的线程结构是网格-线程块-线程（是CUDA程序的最小执行单元）三级结构。
+![](http://i.imgur.com/h43llVa.png)
+
+## CUDA函数声明 ##
+Kernel函数（入口函数）在CPU上调用在GPU上执行，GPU在执行kernel函数的时候面向线程。 
+![](http://i.imgur.com/jdGG8hl.png)  
+
+CUDA中的kernel函数是一个可以在CUDA程序中被独立并行执行的一个过程。
+# CUDA API语法 #
+{% highlight ruby %}
+__global__ void Compute(int *gpudata) { .......}
+{% endhighlight %}  
+调用方式    
+{% highlight ruby %}
+Compute<<<m,n>>>(a,b)
+{% endhighlight %}  
+其中<<< >>>是运算符，用来传递要调用的kernel函数的执行参数，m代表每个Grid中的Block数量，n代表每个Block中的Thread数量，<<< >>>也包含每个Block能够分配的额外shared memory大小，隐藏默认为1。   a,b是函数调用的实参。   
+
+每个	Grid分为N个Block，每个Block分为M个Thread，则每个线程的序号为 N*M+ThreadID.x。 
+# 索引计算方法 #
+{% highlight ruby %}
+int tid = threadIdx.x + blockIdx.x * blockDim.x;
+{% endhighlight %}    
+threadIdx.x表示当前线程所在线程块中某行的索引，blockIdx.x表示线程块索引，blockDim.x表示每个线程块中的线程数量。gridDim.x表示当前线程格中线程块的数量
+
+
 开始学习CUDA编程啦，觉得通过具体的例子来解释CUDA编程的关键点会好很多吧。这是我开始学习的第一个例子，求立方和，以下是完整的代码，具体的解释在各行中有注释，在便于我回忆的同时希望对大家会有帮助。  
 通过以下形式启动核函数：
    {% highlight ruby %} add<<<5,1>>>(param1,param2.....)  {% endhighlight %}
