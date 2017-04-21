@@ -45,7 +45,18 @@ Compute<<<m,n>>>(a,b)
 {% highlight ruby %}
 int tid = threadIdx.x + blockIdx.x * blockDim.x;
 {% endhighlight %}    
-threadIdx.x表示当前线程所在线程块中某行的索引，blockIdx.x表示线程块索引，blockDim.x表示每个线程块中的线程数量。gridDim.x表示当前线程格中线程块的数量
+
+
+- threadIdx.x表示当前线程所在线程块中某行的索引，
+
+
+- blockIdx.x表示线程块索引，
+
+
+- blockDim.x表示每个线程块中的线程数量
+
+
+- gridDim.x表示当前线程格中线程块的数量
 
 
 开始学习CUDA编程啦，觉得通过具体的例子来解释CUDA编程的关键点会好很多吧。这是我开始学习的第一个例子，求立方和，以下是完整的代码，具体的解释在各行中有注释，在便于我回忆的同时希望对大家会有帮助。  
