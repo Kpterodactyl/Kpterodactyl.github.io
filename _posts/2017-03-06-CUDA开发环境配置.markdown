@@ -35,8 +35,10 @@ $ sudo nvidia-uninstall
 屏蔽nouveau的库  
    {% highlight ruby %} $ cd /etc/modprobe.d/  {% endhighlight %} 
 找到 nvidia-installer-disable-nouveau.conf里面  
-   ` blacklist nouveau  `      
-   ` options nouveau modeset=0    `        
+{% highlight ruby %}
+    blacklist nouveau        
+    options nouveau modeset=0    
+{% endhighlight %}       
 通过这两句话 nvidia的安装包会主动把nouveau的驱动库屏蔽掉，之后重启系统
 运行.run文件 
 ![](http://i.imgur.com/DNCc3nR.png)
