@@ -14,7 +14,7 @@ tags:
 我偏好使用Ubuntu,那么首先来查看一下所使用的版本   
     `$ cat /etc/issue   `  
 然后我们来了解一下所使用的GPU版本和对nvidia的支持     
-   ` $lspci | grep -i nvidia   ` 
+   `  $ lspci | grep -i nvidia  ` 
 ![](http://i.imgur.com/LJlRuY6.png)  
 之后查看gcc的支持  
 ![](http://i.imgur.com/CMa3poc.png)
