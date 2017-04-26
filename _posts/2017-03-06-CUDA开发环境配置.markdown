@@ -12,9 +12,10 @@ tags:
     - 环境配置
 ---
 我偏好使用Ubuntu,那么首先来查看一下所使用的版本   
-    `$ cat /etc/issue   `  
+    {% highlight ruby %}
+$ cat /etc/issue   {% endhighlight %}  
 然后我们来了解一下所使用的GPU版本和对nvidia的支持        
-   `  $ lspci | grep -i nvidia  `        
+     {% highlight ruby %} $ lspci | grep -i nvidia  {% endhighlight %}         
 ![](http://i.imgur.com/LJlRuY6.png)  
 之后查看gcc的支持  
 ![](http://i.imgur.com/CMa3poc.png)
@@ -32,10 +33,10 @@ $ sudo nvidia-uninstall
 ![](http://i.imgur.com/Y8u8nCk.png)  
 同时也清除原来的nvidia支持库  
 屏蔽nouveau的库  
-   ` $ cd /etc/modprobe.d/  `
+   {% highlight ruby %} $ cd /etc/modprobe.d/  {% endhighlight %} 
 找到 nvidia-installer-disable-nouveau.conf里面  
-   ` blacklist nouveau  `
-   ` options nouveau modeset=0    `
+   ` blacklist nouveau  `      
+   ` options nouveau modeset=0    `        
 通过这两句话 nvidia的安装包会主动把nouveau的驱动库屏蔽掉，之后重启系统
 运行.run文件 
 ![](http://i.imgur.com/DNCc3nR.png)
@@ -45,8 +46,8 @@ Enter Toolkit Location
 Enter CUDA Samples Location  
  [ default is /home/dutoeserver ]:           
 可以看到提示信息，要修改PATH和LD_LIBRARY_PATH      
-    `PATH includes /usr/local/cuda-8.0/bin`   
-    ` -   LD_LIBRARY_PATH includes /usr/local/cuda-8.0/lib64, or, add /usr/local/cuda-8.0/lib64 to /etc/ld.so.conf and run ldconfig as root`     
+    {% highlight ruby %}PATH includes /usr/local/cuda-8.0/bin  
+    -   LD_LIBRARY_PATH includes /usr/local/cuda-8.0/lib64, or, add /usr/local/cuda-8.0/lib64 to /etc/ld.so.conf and run ldconfig as root {% endhighlight %}      
 回到根目录下 vim .bashrc   依照下图制定路径后 `source .bashrc` 使新配置生效
 
 ![](http://i.imgur.com/VWk1iLl.png)
