@@ -10,7 +10,7 @@
     <meta name="keywords"  content="">
     <meta name="theme-color" content="#000000">
     
-    <title>NVCC编译指令 - 阿坤的博客 | KUN Blog</title>
+    <title>CUDA开发环境配置 - 阿坤的博客 | KUN Blog</title>
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="/pwa/manifest.json">
@@ -19,7 +19,7 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="http://localhost:5001/2017/03/14/%E7%BC%96%E8%AF%91%E6%8C%87%E4%BB%A4NVCC%E6%8C%87%E4%BB%A4/">
+    <link rel="canonical" href="http://localhost:5001/2017/03/05/CUDA%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -151,13 +151,13 @@
 
     <!-- Image to hack wechat -->
 <!-- <img src="/img/icon_wechat.png" width="0" height="0"> -->
-<!-- <img src="/img/post-bg-debug.png" width="0" height="0"> -->
+<!-- <img src="/img/post-bg-js-module.jpg" width="0" height="0"> -->
 
 <!-- Post Header -->
 <style type="text/css">
     header.intro-header{
         position: relative;
-        background-image: url('/img/post-bg-debug.png')
+        background-image: url('/img/post-bg-js-module.jpg')
     }
 
     
@@ -170,17 +170,19 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                        <a class="tag" href="/tags/#NVCC" title="NVCC">NVCC</a>
+                        <a class="tag" href="/tags/#CUDA" title="CUDA">CUDA</a>
                         
-                        <a class="tag" href="/tags/#debug" title="debug">debug</a>
+                        <a class="tag" href="/tags/#GPU" title="GPU">GPU</a>
+                        
+                        <a class="tag" href="/tags/#环境配置" title="环境配置">环境配置</a>
                         
                     </div>
-                    <h1>NVCC编译指令</h1>
+                    <h1>CUDA开发环境配置</h1>
                     
                     
-                    <h2 class="subheading">NVCC编译选项</h2>
+                    <h2 class="subheading">Ubuntu环境下配置CUDA开发环境</h2>
                     
-                    <span class="meta">Posted by Memory on March 14, 2017</span>
+                    <span class="meta">Posted by Memory on March 5, 2017</span>
                 </div>
             </div>
         </div>
@@ -198,22 +200,67 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-				<p><img src="http://i.imgur.com/52eiF8B.png" alt="" /></p>
-<h1 id="nvcc-build-configurations">NVCC Build Configurations</h1>
-<p><code class="highlighter-rouge">nvcc &lt;filename&gt;.cu [-o &lt;executable&gt;]</code></p>
-<ul>
-  <li>Builds release mode<br />
-<code class="highlighter-rouge">nvcc -g &lt;filename&gt;.cu  </code></li>
-  <li>Build debug mode</li>
-  <li>can debug host code but not device code<br />
-` nvcc -deviceemu <filename>.cu`</filename></li>
-  <li>Builds device emulation mode</li>
-  <li>All code runs on CPU, no debug symbols<br />
-` nvcc -deviceemu -g <filename>.cu`</filename></li>
-  <li>Builds debug device emulation mode</li>
-  <li>All code runs on CPU,with debug symbols</li>
-</ul>
+				<p>我偏好使用Ubuntu,那么首先来查看一下所使用的版本</p>
 
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="err">$</span> <span class="n">cat</span> <span class="sr">/etc/issue</span>   </code></pre></figure>
+
+<p>然后我们来了解一下所使用的GPU版本和对nvidia的支持</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"> <span class="err">$</span> <span class="n">lspci</span> <span class="o">|</span> <span class="n">grep</span> <span class="o">-</span><span class="n">i</span> <span class="n">nvidia</span>  </code></pre></figure>
+
+<p><img src="http://i.imgur.com/LJlRuY6.png" alt="" /><br />
+之后查看gcc的支持<br />
+<img src="http://i.imgur.com/CMa3poc.png" alt="" />
+<img src="http://i.imgur.com/GOr87ja.png" alt="" /><br />
+  可以看到gcc的版本是5.4.0。</p>
+<h1 id="准备工作">准备工作</h1>
+<p>之后开始下载CUDA Toolkit，其中下载链接为<a href="https://developer.nvidia.com/cuda-downloads" title="CUDA toolkit下载链接"><code class="highlighter-rouge">https://developer.nvidia.com/cuda-downloads</code></a><br />
+安装所需的支持库<br />
+按照相应的系统支持的版本进行下载<br />
+<img src="http://i.imgur.com/3oo0wnN.png" alt="" /><br />
+之后就可以把下载好的.run文件放在合适的目录，准备进行安装和环境配置。 首先在进行实际的软件开发之前，要安装一些必要的支持库<br />
+<img src="http://i.imgur.com/1QYelb5.png" alt="" /><br />
+卸载在这台机器上之前装过的其他版本的NVIDIA的驱动  <br />
+$ sudo nvidia-uninstall<br />
+<img src="http://i.imgur.com/Y8u8nCk.png" alt="" /><br />
+同时也清除原来的nvidia支持库<br />
+屏蔽nouveau的库</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"> <span class="err">$</span> <span class="n">cd</span> <span class="sr">/etc/mo</span><span class="n">dprobe</span><span class="p">.</span><span class="nf">d</span><span class="o">/</span>  </code></pre></figure>
+
+<p>找到 nvidia-installer-disable-nouveau.conf里面</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby">    <span class="n">blacklist</span> <span class="n">nouveau</span>        
+    <span class="n">options</span> <span class="n">nouveau</span> <span class="n">modeset</span><span class="o">=</span><span class="mi">0</span>    </code></pre></figure>
+
+<p>通过这两句话 nvidia的安装包会主动把nouveau的驱动库屏蔽掉，之后重启系统
+运行.run文件 
+<img src="http://i.imgur.com/DNCc3nR.png" alt="" />
+<code class="highlighter-rouge">$sudo sh cuda_8.0.61_375.26_linux.run </code>   <br />
+Enter Toolkit Location<br />
+ [ default is /usr/local/cuda-8.0 ]:<br />
+Enter CUDA Samples Location<br />
+ [ default is /home/dutoeserver ]:         <br />
+可以看到提示信息，要修改PATH和LD_LIBRARY_PATH</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="no">PATH</span> <span class="n">includes</span> <span class="sr">/usr/</span><span class="n">local</span><span class="o">/</span><span class="n">cuda</span><span class="o">-</span><span class="mi">8</span><span class="o">.</span><span class="mi">0</span><span class="o">/</span><span class="n">bin</span>  
+    <span class="o">-</span>   <span class="no">LD_LIBRARY_PATH</span> <span class="n">includes</span> <span class="sr">/usr/</span><span class="n">local</span><span class="o">/</span><span class="n">cuda</span><span class="o">-</span><span class="mi">8</span><span class="o">.</span><span class="mi">0</span><span class="o">/</span><span class="n">lib64</span><span class="p">,</span> <span class="n">or</span><span class="p">,</span> <span class="n">add</span> <span class="sr">/usr/</span><span class="n">local</span><span class="o">/</span><span class="n">cuda</span><span class="o">-</span><span class="mi">8</span><span class="o">.</span><span class="mi">0</span><span class="o">/</span><span class="n">lib64</span> <span class="n">to</span> <span class="sr">/etc/</span><span class="n">ld</span><span class="p">.</span><span class="nf">so</span><span class="p">.</span><span class="nf">conf</span> <span class="n">and</span> <span class="n">run</span> <span class="n">ldconfig</span> <span class="n">as</span> <span class="n">root</span> </code></pre></figure>
+
+<p>回到根目录下 vim .bashrc   依照下图制定路径后 <code class="highlighter-rouge">source .bashrc</code> 使新配置生效</p>
+
+<p><img src="http://i.imgur.com/VWk1iLl.png" alt="" /></p>
+
+<p>之后通过nvcc –version指令可以看到，我们配置的是Cuda compilation tools, release 8.0, V8.0.61<br />
+<strong>至此，我们就完成了CUDA的编译环境和SDK的安装，是不是好棒棒！</strong></p>
+
+<h1 id="示例">示例</h1>
+
+<p>现在，我们就可以看到NVIDIA_CUDA-8.0_Samples，文件夹里面就是NVIDIA提供的在不同应用领域的官方示例，我们可以通过阅读官方示例的代码来进行学习和提高。 同时也可以使用官方示例来验证我们的环境配置是否正确。
+<img src="http://i.imgur.com/HgO3JWT.png" alt="" /><br />
+make一下会看到nvcc的工具正在编译包里面的示例           <br />
+<img src="http://i.imgur.com/LT3bKXX.png" alt="" /><br />
+测试一下CUDA运行<br />
+<img src="http://i.imgur.com/YScQ2hn.png" alt="" /></p>
 
 
                 <hr style="visibility: hidden;">
@@ -223,18 +270,11 @@
 
                 <ul class="pager">
                     
-                    <li class="previous">
-                        <a href="/jekyll/2017/03/12/Jekyll%E5%AE%89%E8%A3%85/" data-toggle="tooltip" data-placement="top" title="Let's install Jekyll!">
-                        Previous<br>
-                        <span>Let's install Jekyll!</span>
-                        </a>
-                    </li>
-                    
                     
                     <li class="next">
-                        <a href="/jekyll/2017/03/14/welcome-to-jekyll/" data-toggle="tooltip" data-placement="top" title="Welcome to Jekyll!">
+                        <a href="/jekyll/2017/03/12/Jekyll%E5%AE%89%E8%A3%85/" data-toggle="tooltip" data-placement="top" title="Let's install Jekyll!">
                         Next<br>
-                        <span>Welcome to Jekyll!</span>
+                        <span>Let's install Jekyll!</span>
                         </a>
                     </li>
                     

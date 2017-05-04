@@ -10,7 +10,7 @@
     <meta name="keywords"  content="">
     <meta name="theme-color" content="#000000">
     
-    <title>NVCC编译指令 - 阿坤的博客 | KUN Blog</title>
+    <title>How to use cuda-gdb debug - 阿坤的博客 | KUN Blog</title>
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="/pwa/manifest.json">
@@ -19,7 +19,7 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="http://localhost:5001/2017/03/14/%E7%BC%96%E8%AF%91%E6%8C%87%E4%BB%A4NVCC%E6%8C%87%E4%BB%A4/">
+    <link rel="canonical" href="http://localhost:5001/cuda/2017/03/14/CUDA-GDB%E4%BD%BF%E7%94%A8/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -151,13 +151,13 @@
 
     <!-- Image to hack wechat -->
 <!-- <img src="/img/icon_wechat.png" width="0" height="0"> -->
-<!-- <img src="/img/post-bg-debug.png" width="0" height="0"> -->
+<!-- <img src="/img/post-bg-rwd.jpg" width="0" height="0"> -->
 
 <!-- Post Header -->
 <style type="text/css">
     header.intro-header{
         position: relative;
-        background-image: url('/img/post-bg-debug.png')
+        background-image: url('/img/post-bg-rwd.jpg')
     }
 
     
@@ -170,15 +170,13 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                        <a class="tag" href="/tags/#NVCC" title="NVCC">NVCC</a>
-                        
-                        <a class="tag" href="/tags/#debug" title="debug">debug</a>
+                        <a class="tag" href="/tags/#Jekyll" title="Jekyll">Jekyll</a>
                         
                     </div>
-                    <h1>NVCC编译指令</h1>
+                    <h1>How to use cuda-gdb debug</h1>
                     
                     
-                    <h2 class="subheading">NVCC编译选项</h2>
+                    <h2 class="subheading"></h2>
                     
                     <span class="meta">Posted by Memory on March 14, 2017</span>
                 </div>
@@ -198,21 +196,51 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-				<p><img src="http://i.imgur.com/52eiF8B.png" alt="" /></p>
-<h1 id="nvcc-build-configurations">NVCC Build Configurations</h1>
-<p><code class="highlighter-rouge">nvcc &lt;filename&gt;.cu [-o &lt;executable&gt;]</code></p>
+				<p>开始学习cuda编程了，就会遇到好多的问题，怎么知道是哪里出问题了呢，CUDA自带的cuda-gdb就会帮到我们啦。NVIDA对开源的GUN调试器进行了扩展，CUDA-GDB包含以下功能：</p>
+
 <ul>
-  <li>Builds release mode<br />
-<code class="highlighter-rouge">nvcc -g &lt;filename&gt;.cu  </code></li>
-  <li>Build debug mode</li>
-  <li>can debug host code but not device code<br />
-` nvcc -deviceemu <filename>.cu`</filename></li>
-  <li>Builds device emulation mode</li>
-  <li>All code runs on CPU, no debug symbols<br />
-` nvcc -deviceemu -g <filename>.cu`</filename></li>
-  <li>Builds debug device emulation mode</li>
-  <li>All code runs on CPU,with debug symbols</li>
+  <li>观察CUDA状态，例如已安装的GPU及其支持的功能</li>
+  <li>在CUDA C中设置断点</li>
+  <li>分享GPU中内存，包括全局内存和共享内存</li>
+  <li>单步调试</li>
+  <li>分析当前驻留在GPU上的线程块和线程</li>
+  <li>设置断点调试</li>
 </ul>
+
+<p>首先输入<code class="highlighter-rouge">cuda-gdb</code>就会进入这样的模式</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">server</span><span class="vi">@Server</span><span class="o">-</span><span class="mi">1</span><span class="ss">:~</span><span class="o">/</span><span class="n">xtk</span><span class="o">/</span><span class="no">Exercises</span><span class="o">/</span><span class="no">Test1</span><span class="err">$</span> <span class="n">cuda</span><span class="o">-</span><span class="n">gdb</span>  
+<span class="no">NVIDIA</span> <span class="p">(</span><span class="no">R</span><span class="p">)</span> <span class="no">CUDA</span> <span class="no">Debugger</span>  
+<span class="mi">8</span><span class="o">.</span><span class="mi">0</span> <span class="n">release</span>  
+<span class="no">Portions</span> <span class="no">Copyright</span> <span class="p">(</span><span class="no">C</span><span class="p">)</span> <span class="mi">2007</span><span class="o">-</span><span class="mi">2016</span> <span class="no">NVIDIA</span> <span class="no">Corporation</span>
+<span class="no">GNU</span> <span class="n">gdb</span> <span class="p">(</span><span class="no">GDB</span><span class="p">)</span> <span class="mi">7</span><span class="o">.</span><span class="mi">6</span><span class="o">.</span><span class="mi">2</span>
+<span class="no">Copyright</span> <span class="p">(</span><span class="no">C</span><span class="p">)</span> <span class="mi">2013</span> <span class="no">Free</span> <span class="no">Software</span> <span class="no">Foundation</span><span class="p">,</span> <span class="no">Inc</span><span class="o">.</span>
+<span class="no">License</span> <span class="no">GPLv3</span><span class="o">+</span><span class="p">:</span> <span class="no">GNU</span> <span class="no">GPL</span> <span class="n">version</span> <span class="mi">3</span> <span class="n">or</span> <span class="n">later</span> <span class="o">&lt;</span><span class="n">http</span><span class="ss">:/</span><span class="o">/</span><span class="n">gnu</span><span class="p">.</span><span class="nf">org</span><span class="o">/</span><span class="n">licenses</span><span class="o">/</span><span class="n">gpl</span><span class="p">.</span><span class="nf">html</span><span class="o">&gt;</span>
+<span class="no">This</span> <span class="n">is</span> <span class="n">free</span> <span class="ss">software: </span><span class="n">you</span> <span class="n">are</span> <span class="n">free</span> <span class="n">to</span> <span class="n">change</span> <span class="n">and</span> <span class="n">redistribute</span> <span class="n">it</span><span class="o">.</span>
+<span class="no">There</span> <span class="n">is</span> <span class="no">NO</span> <span class="no">WARRANTY</span><span class="p">,</span> <span class="n">to</span> <span class="n">the</span> <span class="n">extent</span> <span class="n">permitted</span> <span class="n">by</span> <span class="n">law</span><span class="o">.</span>  <span class="no">Type</span> <span class="s2">"show copying"</span>
+<span class="n">and</span> <span class="s2">"show warranty"</span> <span class="k">for</span> <span class="n">details</span><span class="o">.</span>
+<span class="no">This</span> <span class="no">GDB</span> <span class="n">was</span> <span class="n">configured</span> <span class="n">as</span> <span class="s2">"x86_64-unknown-linux-gnu"</span><span class="o">.</span>
+<span class="no">For</span> <span class="n">bug</span> <span class="n">reporting</span> <span class="n">instructions</span><span class="p">,</span> <span class="n">please</span> <span class="ss">see:
+</span><span class="o">&lt;</span><span class="n">http</span><span class="ss">:/</span><span class="o">/</span><span class="n">www</span><span class="p">.</span><span class="nf">gnu</span><span class="p">.</span><span class="nf">org</span><span class="o">/</span><span class="n">software</span><span class="o">/</span><span class="n">gdb</span><span class="o">/</span><span class="n">bugs</span><span class="o">/&gt;.</span>
+<span class="p">(</span><span class="n">cuda</span><span class="o">-</span><span class="n">gdb</span><span class="p">)</span></code></pre></figure>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="p">(</span><span class="n">cuda</span><span class="o">-</span><span class="n">gdb</span><span class="p">)</span> <span class="n">set</span> <span class="n">cuda</span> <span class="n">software_preemption</span> <span class="n">on</span>
+<span class="p">(</span><span class="n">cuda</span><span class="o">-</span><span class="n">gdb</span><span class="p">)</span> <span class="n">file</span> <span class="n">a</span><span class="p">.</span><span class="nf">out</span> 
+<span class="no">Reading</span> <span class="n">symbols</span> <span class="n">from</span> <span class="sr">/home/</span><span class="n">dutoeserver</span><span class="o">/</span><span class="n">xtk</span><span class="o">/</span><span class="no">Exercises</span><span class="o">/</span><span class="no">Test1</span><span class="o">/</span><span class="n">a</span><span class="p">.</span><span class="nf">out</span><span class="p">.</span><span class="nf">.</span><span class="p">.</span><span class="nf">done</span><span class="o">.</span>
+<span class="p">(</span><span class="n">cuda</span><span class="o">-</span><span class="n">gdb</span><span class="p">)</span> <span class="n">b</span> <span class="mi">2</span>
+<span class="no">Breakpoint</span> <span class="mi">1</span> <span class="n">at</span> <span class="mh">0x402bf2</span><span class="p">:</span> <span class="n">file</span> <span class="n">myFirstKernel</span><span class="p">.</span><span class="nf">cu</span><span class="p">,</span> <span class="n">line</span> <span class="mi">2</span><span class="o">.</span>
+<span class="p">(</span><span class="n">cuda</span><span class="o">-</span><span class="n">gdb</span><span class="p">)</span> <span class="n">r</span></code></pre></figure>
+
+<h2 id="调试方法">调试方法</h2>
+<p>在gdb中所有不冲突的指令都可以输入简写，即第一个首字母
+1.允许在图形界面模式下进行调试。
+<code class="highlighter-rouge">set cuda software-preemption on</code><br />
+2.指定要调试的.out文件   <code class="highlighter-rouge">file a.out</code><br />
+3.<code class="highlighter-rouge">b 20 </code> 从20行设置断点 b 作为break的简写<br />
+4.r 运行<br />
+5.n 继续执行下一步 next 5 往后执行5行<br />
+6.p result 输出result变量的值 printf
+7.quit 退出调试</p>
 
 
 
@@ -224,17 +252,17 @@
                 <ul class="pager">
                     
                     <li class="previous">
-                        <a href="/jekyll/2017/03/12/Jekyll%E5%AE%89%E8%A3%85/" data-toggle="tooltip" data-placement="top" title="Let's install Jekyll!">
+                        <a href="/jekyll/2017/03/14/Jekyll%E4%BD%BF%E7%94%A8%E5%8F%AF%E8%83%BD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" data-toggle="tooltip" data-placement="top" title=" Don't have jekyll-paginate  ">
                         Previous<br>
-                        <span>Let's install Jekyll!</span>
+                        <span> Don't have jekyll-paginate  </span>
                         </a>
                     </li>
                     
                     
                     <li class="next">
-                        <a href="/jekyll/2017/03/14/welcome-to-jekyll/" data-toggle="tooltip" data-placement="top" title="Welcome to Jekyll!">
+                        <a href="/cuda/2017/03/17/CUDA%E7%BC%96%E7%A8%8B%E5%85%A5%E9%97%A8/" data-toggle="tooltip" data-placement="top" title="CUDA编程基础知识+示例">
                         Next<br>
-                        <span>Welcome to Jekyll!</span>
+                        <span>CUDA编程基础知识+示例</span>
                         </a>
                     </li>
                     
@@ -248,20 +276,6 @@
             </div>  
 
     <!-- Side Catalog Container -->
-        
-            <div class="
-                col-lg-2 col-lg-offset-0
-                visible-lg-block
-                sidebar-container
-                catalog-container">
-                <div class="side-catalog">
-                    <hr class="hidden-sm hidden-xs">
-                    <h5>
-                        <a class="catalog-toggle" href="#">CATALOG</a>
-                    </h5>
-                    <ul class="catalog-body"></ul>
-                </div>
-            </div>
         
 
     <!-- Sidebar Container -->
@@ -457,50 +471,6 @@
 
 
 <!-- Side Catalog -->
-
-<script type="text/javascript">
-    function generateCatalog (selector) {
-        var P = $('div.post-container'),a,n,t,l,i,c;
-        a = P.find('h1,h2,h3,h4,h5,h6');
-        a.each(function () {
-            n = $(this).prop('tagName').toLowerCase();
-            i = "#"+$(this).prop('id');
-            t = $(this).text();
-            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
-            l = $('<li class="'+n+'_nav"></li>').append(c);
-            $(selector).append(l);
-        });
-        return true;    
-    }
-
-    generateCatalog(".catalog-body");
-
-    // toggle side catalog
-    $(".catalog-toggle").click((function(e){
-        e.preventDefault();
-        $('.side-catalog').toggleClass("fold")
-    }))
-
-    /*
-     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
-     * Fork by Hux to support padding
-     */
-    async("/js/jquery.nav.js", function () {
-        $('.catalog-body').onePageNav({
-            currentClass: "active",
-            changeHash: !1,
-            easing: "swing",
-            filter: "",
-            scrollSpeed: 700,
-            scrollOffset: 0,
-            scrollThreshold: .2,
-            begin: null,
-            end: null,
-            scrollChange: null,
-            padding: 80
-        });
-    });
-</script>
 
 
 

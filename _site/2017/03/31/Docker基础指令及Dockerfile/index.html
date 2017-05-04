@@ -7,10 +7,10 @@
     <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="每个胜利背后都有许多尝试">
-    <meta name="keywords"  content="WEB, CDUA, 大数据, PHP">
+    <meta name="keywords"  content="">
     <meta name="theme-color" content="#000000">
     
-    <title>CUDA开发环境配置 - 阿坤的博客 | KUN Blog</title>
+    <title>Docker基础知识 - 阿坤的博客 | KUN Blog</title>
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="/pwa/manifest.json">
@@ -19,7 +19,7 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="http://localhost:4000/2017/03/06/CUDA%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/">
+    <link rel="canonical" href="http://localhost:5001/2017/03/31/Docker%E5%9F%BA%E7%A1%80%E6%8C%87%E4%BB%A4%E5%8F%8ADockerfile/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -69,7 +69,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="/">Bien</a>
+            <a class="navbar-brand" href="/">Memory</a>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
@@ -170,19 +170,19 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                        <a class="tag" href="/tags/#CUDA" title="CUDA">CUDA</a>
+                        <a class="tag" href="/tags/#DockerFile" title="DockerFile">DockerFile</a>
                         
-                        <a class="tag" href="/tags/#GPU" title="GPU">GPU</a>
+                        <a class="tag" href="/tags/#php-fpm" title="php-fpm">php-fpm</a>
                         
-                        <a class="tag" href="/tags/#环境配置" title="环境配置">环境配置</a>
+                        <a class="tag" href="/tags/#Centos" title="Centos">Centos</a>
                         
                     </div>
-                    <h1>CUDA开发环境配置</h1>
+                    <h1>Docker基础知识</h1>
                     
                     
-                    <h2 class="subheading">Ubuntu环境下配置CUDA开发环境</h2>
+                    <h2 class="subheading">Docker基础指令及Dockerfile</h2>
                     
-                    <span class="meta">Posted by Memory on March 6, 2017</span>
+                    <span class="meta">Posted by Memory on March 31, 2017</span>
                 </div>
             </div>
         </div>
@@ -200,54 +200,109 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-				<p>我偏好使用Ubuntu,那么首先来查看一下所使用的版本 <br />
-    <code class="highlighter-rouge">$ cat /etc/issue   </code><br />
-然后我们来了解一下所使用的GPU版本和对nvidia的支持   <br />
-   ` $lspci | grep -i nvidia   ` 
-<img src="http://i.imgur.com/LJlRuY6.png" alt="" /><br />
-之后查看gcc的支持<br />
-<img src="http://i.imgur.com/CMa3poc.png" alt="" />
-<img src="http://i.imgur.com/GOr87ja.png" alt="" /><br />
-  可以看到gcc的版本是5.4.0。  之后开始下载CUDA Toolkit，其中下载链接为<a href="https://developer.nvidia.com/cuda-downloads" title="CUDA toolkit下载链接"><code class="highlighter-rouge">https://developer.nvidia.com/cuda-downloads</code></a><br />
-安装所需的支持库<br />
-<img src="http://i.imgur.com/OC32tZ6.png" alt="" /><br />
-按照相应的系统支持的版本进行下载<br />
-<img src="http://i.imgur.com/3oo0wnN.png" alt="" /><br />
-之后就可以把下载好的.run文件放在合适的目录，准备进行安装和环境配置。 首先在进行实际的软件开发之前，要安装一些必要的支持库<br />
-<img src="http://i.imgur.com/1QYelb5.png" alt="" /><br />
-卸载在这台机器上之前装过的其他版本的NVIDIA的驱动  <br />
-$ sudo nvidia-uninstall<br />
-<img src="http://i.imgur.com/Y8u8nCk.png" alt="" /><br />
-同时也清除原来的nvidia支持库<br />
-屏蔽nouveau的库<br />
-   ` $ cd /etc/modprobe.d/  `
-找到 nvidia-installer-disable-nouveau.conf里面<br />
-   ` blacklist nouveau  `
-   ` options nouveau modeset=0    `
-通过这两句话 nvidia的安装包会主动把nouveau的驱动库屏蔽掉，之后重启系统
-运行.run文件 
-<img src="http://i.imgur.com/DNCc3nR.png" alt="" />
-<code class="highlighter-rouge">$sudo sh cuda_8.0.61_375.26_linux.run </code> <br />
-Enter Toolkit Location<br />
- [ default is /usr/local/cuda-8.0 ]:<br />
-Enter CUDA Samples Location<br />
- [ default is /home/dutoeserver ]:         <br />
-可以看到提示信息，要修改PATH和LD_LIBRARY_PATH    <br />
-    <code class="highlighter-rouge">PATH includes /usr/local/cuda-8.0/bin</code>
-    ` -   LD_LIBRARY_PATH includes /usr/local/cuda-8.0/lib64, or, add /usr/local/cuda-8.0/lib64 to /etc/ld.so.conf and run ldconfig as root<code class="highlighter-rouge">
-回到根目录下 vim .bashrc   依照下图制定路径后 </code>source .bashrc` 使新配置生效</p>
+				<p>Docker 可以让开发者打包他们的应用以及依赖包到一个轻量级、可移植的容器中，然后发布到任何流行的 linux 机器上，也可以实现虚拟化。Docker可以保证在软件开发的时候的环境一致性，以及环境迁移的便捷性。</p>
 
-<p><img src="http://i.imgur.com/VWk1iLl.png" alt="" /></p>
+<ul>
+  <li>
+    <p>Docker镜像：在运行之后吧、会变成容器，启动Container的速度非常快，docker镜像采用了分层技术，基于一个基础镜像（docker run）</p>
+  </li>
+  <li>
+    <p>Docker Registry：Registry是Docker镜像的中央存储仓库 (docker pull/push)</p>
+  </li>
+</ul>
 
-<p>之后通过nvcc –version指令可以看到，我们配置的是Cuda compilation tools, release 8.0, V8.0.61<br />
-<strong>至此，我们就完成了CUDA的编译环境和SDK的安装，是不是好棒棒！</strong></p>
+<p>基础镜像可以用于创建Docker容器。镜像可以非常基础，仅仅包含操作系统比如CentOS7.1；当你在使用Dockerfile构建镜像的时候，每一个命令都会在前一个命令的基础上形成一个新层。</p>
 
-<p>现在，我们就可以看到NVIDIA_CUDA-8.0_Samples，文件夹里面就是NVIDIA提供的在不同应用领域的官方示例，我们可以通过阅读官方示例的代码来进行学习个提高。 同时也可以使用官方示例来验证我们的环境配置是否正确。
-<img src="http://i.imgur.com/HgO3JWT.png" alt="" /><br />
-make一下会看到nvcc的工具正在编译包里面的示例           <br />
-<img src="http://i.imgur.com/LT3bKXX.png" alt="" /><br />
-测试一下CUDA运行<br />
-<img src="http://i.imgur.com/YScQ2hn.png" alt="" /></p>
+<h2 id="dockerfile指令"><strong>DockerFile指令：</strong></h2>
+
+<ol>
+  <li>From 首先要有基础父镜像如 <code class="highlighter-rouge">FROM centos：centos 7.1.1503</code></li>
+  <li>MAINTAINER 维护者的信息</li>
+  <li>ENV 指定一个环境变量，会被后续 RUN 指令使用，并在容器运行时保持，如配置时区</li>
+  <li>ADD 复制，可以是Dockerfile所在目录的一个相对路径；
+如</li>
+</ol>
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="no">ADD</span> <span class="n">supervisord</span><span class="p">.</span><span class="nf">conf</span> <span class="sr">/etc/su</span><span class="n">pervisord</span><span class="p">.</span><span class="nf">conf</span> </code></pre></figure>
+<p>也可以是一个URL；还可以是一个tar文件（自动解压为目录），有解压的功能。</p>
+<ol>
+  <li>RUN 用来安装基础功能如 mkdir pip install yun install</li>
+  <li>EXPOSE 提供容器暴露端口号，如 EXPOSE 22</li>
+  <li>ENTRYPOINT  容器启动后执行该命令，每个DockerFile只会有最后一条ENTERPOINT生效。</li>
+  <li>VOLUME 在建立mysql时或需要保持数据时使用，创建一个可以从本地和容器的映射，当容器删除后数据库仍然保留
+    <h2 id="docker指令"><strong>Docker指令：</strong></h2>
+    <p>在写好Dockerfile之后，就可以通过<strong>docker build</strong>开始创建镜像啦</p>
+  </li>
+</ol>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">docker</span> <span class="n">build</span> <span class="o">-</span><span class="n">t</span> <span class="n">csphere</span><span class="o">/</span><span class="n">centos</span><span class="p">:</span><span class="mi">7</span><span class="o">.</span><span class="mi">1</span> <span class="p">.</span><span class="nf">/</span><span class="n">path</span> </code></pre></figure>
+
+<p>其中  . 表示当前目录，在执行时会看到会有step 1 2 3 … 每执行一条都会在镜像中生成一层
+<img src="http://i.imgur.com/dJG0lQr.png" alt="" /></p>
+
+<p><strong>docker images</strong> 可以查看当前镜像
+<strong>Docker run</strong> 可通过镜像生成容器</p>
+
+<ul>
+  <li>-it 交互模式</li>
+  <li>-d 在后端启动，返回容器的长ID号</li>
+  <li>-p 2222:2222 将容器的22端口映射到主机的2222端口</li>
+  <li>-P 22 将容器的22端口映射到主机随机端口</li>
+  <li>–name base: 为容器指定一个名称
+实例：</li>
+</ul>
+
+<p><img src="http://i.imgur.com/5lz2Tg4.png" alt="" /></p>
+
+<p><strong>docker ps</strong> 只会显示running状态的容器 <br />
+<strong>docker ps -a</strong> 会显示所有</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">docker</span> <span class="nb">exec</span> <span class="o">-</span><span class="n">it</span> <span class="n">website</span> <span class="sr">/bin/</span><span class="n">bash</span>  </code></pre></figure>
+
+<p>进入容器指令 ,其中website是容器名称 /bin/bash是选择进入的容器目录
+这里我用centos作为基础镜像，之后安装中间件镜像（php-fpm、MySQL）来形成应用镜像。</p>
+
+<p>创建php-fpm镜像的Dockerfile</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="no">FROM</span>       <span class="n">csphere</span><span class="o">/</span><span class="n">centos</span><span class="p">:</span><span class="mi">7</span><span class="o">.</span><span class="mi">1</span>
+<span class="no">MAINTAINER</span> <span class="no">KUN</span>
+
+<span class="c1"># Set environment variable</span>
+<span class="no">ENV</span>	<span class="no">APP_DIR</span> <span class="sr">/app
+
+RUN	yum -y --skip-broken install nginx php-cli php-mysql php-pear php-ldap php-mbstring php-soap php-dom php-gd php-xmlrpc php-fpm php-mcrypt &amp;&amp; \ 
+    yum clean all   
+    
+RUN sed -i "s/</span><span class="n">default_server</span><span class="o">/</span><span class="sr">/" /e</span><span class="n">tc</span><span class="o">/</span><span class="n">nginx</span><span class="o">/</span><span class="n">nginx</span><span class="p">.</span><span class="nf">conf</span>
+<span class="no">RUN</span> <span class="n">echo</span> <span class="s2">"daemon=off;"</span> <span class="o">&gt;&gt;</span> <span class="sr">/etc/n</span><span class="n">ginx</span><span class="o">/</span><span class="n">conf</span><span class="p">.</span><span class="nf">d</span><span class="o">/</span><span class="n">default</span><span class="p">.</span><span class="nf">conf</span>
+<span class="no">ADD</span>	<span class="n">nginx_default</span><span class="p">.</span><span class="nf">conf</span> <span class="sr">/etc/n</span><span class="n">ginx</span><span class="o">/</span><span class="n">conf</span><span class="p">.</span><span class="nf">d</span><span class="o">/</span><span class="n">default</span><span class="p">.</span><span class="nf">conf</span>
+
+<span class="no">ADD</span>	<span class="n">php_www</span><span class="p">.</span><span class="nf">conf</span> <span class="sr">/etc/</span><span class="n">php</span><span class="o">-</span><span class="n">fpm</span><span class="p">.</span><span class="nf">d</span><span class="o">/</span><span class="n">www</span><span class="p">.</span><span class="nf">conf</span>
+<span class="no">RUN</span>	<span class="n">sed</span> <span class="o">-</span><span class="n">i</span> <span class="s1">'s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/'</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">php</span><span class="p">.</span><span class="nf">ini</span>
+
+<span class="no">RUN</span>	<span class="n">mkdir</span> <span class="o">-</span><span class="nb">p</span> <span class="sr">/app &amp;&amp; echo "&lt;?php phpinfo(); ?&gt;" &gt; ${APP_DIR}/in</span><span class="n">fo</span><span class="p">.</span><span class="nf">php</span>
+
+<span class="no">EXPOSE</span>	<span class="mi">80</span> <span class="mi">443</span>
+
+<span class="no">ADD</span>	<span class="n">supervisor_nginx</span><span class="p">.</span><span class="nf">conf</span> <span class="sr">/etc/su</span><span class="n">pervisor</span><span class="p">.</span><span class="nf">conf</span><span class="p">.</span><span class="nf">d</span><span class="o">/</span><span class="n">nginx</span><span class="p">.</span><span class="nf">conf</span>
+<span class="no">ADD</span>	<span class="n">supervisor_php</span><span class="o">-</span><span class="n">fpm</span><span class="p">.</span><span class="nf">conf</span> <span class="sr">/etc/su</span><span class="n">pervisor</span><span class="p">.</span><span class="nf">conf</span><span class="p">.</span><span class="nf">d</span><span class="o">/</span><span class="n">php</span><span class="o">-</span><span class="n">fpm</span><span class="p">.</span><span class="nf">conf</span>
+
+<span class="no">ONBUILD</span> <span class="no">ADD</span> <span class="p">.</span> <span class="nf">/</span><span class="n">app</span>
+<span class="no">ONBUILD</span> <span class="no">RUN</span> <span class="n">chown</span> <span class="o">-</span><span class="no">R</span> <span class="n">nginx</span><span class="ss">:nginx</span> <span class="o">/</span><span class="n">app</span></code></pre></figure>
+
+<h2 id="可能遇到的问题">可能遇到的问题</h2>
+<p>Error: fakesystemd conflicts with systemd-219-30.el7_3.7.x86_64 
+可以尝试的解决办法
+在centos 7 和fakesystend发生了冲突，可能是版本的问题，更新基础镜像
+$ sudo docker pull centos:lastest 
+或 $ sudo docker pull centos:7</p>
+
+<p>我根据错误提示添加了–skip-broken 
+<img src="http://i.imgur.com/oGZEolJ.png" alt="" />
+也可以绕过这个问题，不过在镜像和容器创建之后，进入容器之后会报如下错误：
+<img src="http://i.imgur.com/gxHh2Ud.png" alt="" />
+然后在容器中通过 yum -y install php-fpm重新安装后php-fpm就恢复了正常
+<img src="http://i.imgur.com/liJINHN.png" alt="" /></p>
+
 
 
                 <hr style="visibility: hidden;">
@@ -257,11 +312,18 @@ make一下会看到nvcc的工具正在编译包里面的示例           <br />
 
                 <ul class="pager">
                     
+                    <li class="previous">
+                        <a href="/cuda/2017/03/17/CUDA%E7%BC%96%E7%A8%8B%E5%85%A5%E9%97%A8/" data-toggle="tooltip" data-placement="top" title="CUDA编程基础知识+示例">
+                        Previous<br>
+                        <span>CUDA编程基础知识+示例</span>
+                        </a>
+                    </li>
+                    
                     
                     <li class="next">
-                        <a href="/2017/03/14/%E7%BC%96%E8%AF%91%E6%8C%87%E4%BB%A4NVCC%E6%8C%87%E4%BB%A4/" data-toggle="tooltip" data-placement="top" title="NVCC编译指令">
+                        <a href="/cuda/2017/04/12/CUDA%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/" data-toggle="tooltip" data-placement="top" title="CUDA错误处理+示例">
                         Next<br>
-                        <span>NVCC编译指令</span>
+                        <span>CUDA错误处理+示例</span>
                         </a>
                     </li>
                     
@@ -296,31 +358,6 @@ make一下会看到nvcc的工具正在编译包里面的示例           <br />
                 col-lg-8 col-lg-offset-2
                 col-md-10 col-md-offset-1
                 sidebar-container">
-
-                <!-- Featured Tags -->
-                
-                <section>
-                    <hr class="hidden-sm hidden-xs">
-                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
-                    <div class="tags">
-        				
-                            
-        				
-                            
-        				
-                            
-        				
-                            
-        				
-                            
-        				
-                            
-        				
-                            
-        				
-        			</div>
-                </section>
-                
 
                 <!-- Friends Blog -->
                 
@@ -385,33 +422,15 @@ make一下会看到nvcc的工具正在编译包里面的示例           <br />
 
                     <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
                     
-                    <li>
-                        <a target="_blank" href="https://www.zhihu.com/people/xu-di-86-67">
-                            <span class="fa-stack fa-lg">
-                                <i class="fa fa-circle fa-stack-2x"></i>
-                                <i class="fa  fa-stack-1x fa-inverse">知</i>
-                            </span>
-                        </a>
-                    </li>
-                    
                     
 
 
                     
-                    
-                    <li>
-                        <a target="_blank" href="https://github.com/superkunkunkun">
-                            <span class="fa-stack fa-lg">
-                                <i class="fa fa-circle fa-stack-2x"></i>
-                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
-                            </span>
-                        </a>
-                    </li>
                     
                     
                 </ul>
                 <p class="copyright text-muted">
-                    Copyright &copy; Bien 2017
+                    Copyright &copy; Memory 2017
                     <br>
                     Theme by <a href="http://huangxuan.me">Hux</a> |
                     <iframe
@@ -504,21 +523,6 @@ make一下会看到nvcc的工具正在编译包里面的示例           <br />
 
 
 <!-- Google Analytics -->
-
-<script>
-    // dynamic User by Hux
-    var _gaId = 'UA-90855596-1';
-    var _gaDomain = 'auto';
-
-    // Originial
-    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-    ga('create', _gaId, _gaDomain);
-    ga('send', 'pageview');
-</script>
 
 
 

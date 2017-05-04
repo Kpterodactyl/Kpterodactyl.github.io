@@ -7,10 +7,10 @@
     <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="每个胜利背后都有许多尝试">
-    <meta name="keywords"  content="WEB, CDUA, 大数据, PHP">
+    <meta name="keywords"  content="">
     <meta name="theme-color" content="#000000">
     
-    <title>How to use cuda-gdb debug - 阿坤的博客 | KUN Blog</title>
+    <title> Don't have jekyll-paginate   - 阿坤的博客 | KUN Blog</title>
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="/pwa/manifest.json">
@@ -19,7 +19,7 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="http://localhost:4000/cuda/2017/03/15/CUDA-GDB%E4%BD%BF%E7%94%A8/">
+    <link rel="canonical" href="http://localhost:5001/jekyll/2017/03/14/Jekyll%E4%BD%BF%E7%94%A8%E5%8F%AF%E8%83%BD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -69,7 +69,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="/">Bien</a>
+            <a class="navbar-brand" href="/">Memory</a>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
@@ -170,15 +170,15 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                        <a class="tag" href="/tags/#Jekyll" title="Jekyll">Jekyll</a>
+                        <a class="tag" href="/tags/#Jekyll problem" title="Jekyll problem">Jekyll problem</a>
                         
                     </div>
-                    <h1>How to use cuda-gdb debug</h1>
+                    <h1> Don't have jekyll-paginate  </h1>
                     
                     
                     <h2 class="subheading"></h2>
                     
-                    <span class="meta">Posted by Bien on March 15, 2017</span>
+                    <span class="meta">Posted by Memory on March 14, 2017</span>
                 </div>
             </div>
         </div>
@@ -196,42 +196,24 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-				<p>开始学习cuda编程了，就会遇到好多的问题，怎么知道是哪里出问题了呢，CUDA自带的cuda-gdb就会帮到我们啦。
-首先输入<code class="highlighter-rouge">cuda-gdb</code>就会进入这样的模式</p>
+				<p>在执行<code class="highlighter-rouge">bundle exec jekyll serve</code>之后会报如下错误：</p>
 
-<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">server</span><span class="vi">@Server</span><span class="o">-</span><span class="mi">1</span><span class="ss">:~</span><span class="o">/</span><span class="n">xtk</span><span class="o">/</span><span class="no">Exercises</span><span class="o">/</span><span class="no">Test1</span><span class="err">$</span> <span class="n">cuda</span><span class="o">-</span><span class="n">gdb</span>  
-<span class="no">NVIDIA</span> <span class="p">(</span><span class="no">R</span><span class="p">)</span> <span class="no">CUDA</span> <span class="no">Debugger</span>  
-<span class="mi">8</span><span class="o">.</span><span class="mi">0</span> <span class="n">release</span>  
-<span class="no">Portions</span> <span class="no">Copyright</span> <span class="p">(</span><span class="no">C</span><span class="p">)</span> <span class="mi">2007</span><span class="o">-</span><span class="mi">2016</span> <span class="no">NVIDIA</span> <span class="no">Corporation</span>
-<span class="no">GNU</span> <span class="n">gdb</span> <span class="p">(</span><span class="no">GDB</span><span class="p">)</span> <span class="mi">7</span><span class="o">.</span><span class="mi">6</span><span class="o">.</span><span class="mi">2</span>
-<span class="no">Copyright</span> <span class="p">(</span><span class="no">C</span><span class="p">)</span> <span class="mi">2013</span> <span class="no">Free</span> <span class="no">Software</span> <span class="no">Foundation</span><span class="p">,</span> <span class="no">Inc</span><span class="o">.</span>
-<span class="no">License</span> <span class="no">GPLv3</span><span class="o">+</span><span class="p">:</span> <span class="no">GNU</span> <span class="no">GPL</span> <span class="n">version</span> <span class="mi">3</span> <span class="n">or</span> <span class="n">later</span> <span class="o">&lt;</span><span class="n">http</span><span class="ss">:/</span><span class="o">/</span><span class="n">gnu</span><span class="p">.</span><span class="nf">org</span><span class="o">/</span><span class="n">licenses</span><span class="o">/</span><span class="n">gpl</span><span class="p">.</span><span class="nf">html</span><span class="o">&gt;</span>
-<span class="no">This</span> <span class="n">is</span> <span class="n">free</span> <span class="ss">software: </span><span class="n">you</span> <span class="n">are</span> <span class="n">free</span> <span class="n">to</span> <span class="n">change</span> <span class="n">and</span> <span class="n">redistribute</span> <span class="n">it</span><span class="o">.</span>
-<span class="no">There</span> <span class="n">is</span> <span class="no">NO</span> <span class="no">WARRANTY</span><span class="p">,</span> <span class="n">to</span> <span class="n">the</span> <span class="n">extent</span> <span class="n">permitted</span> <span class="n">by</span> <span class="n">law</span><span class="o">.</span>  <span class="no">Type</span> <span class="s2">"show copying"</span>
-<span class="n">and</span> <span class="s2">"show warranty"</span> <span class="k">for</span> <span class="n">details</span><span class="o">.</span>
-<span class="no">This</span> <span class="no">GDB</span> <span class="n">was</span> <span class="n">configured</span> <span class="n">as</span> <span class="s2">"x86_64-unknown-linux-gnu"</span><span class="o">.</span>
-<span class="no">For</span> <span class="n">bug</span> <span class="n">reporting</span> <span class="n">instructions</span><span class="p">,</span> <span class="n">please</span> <span class="ss">see:
-</span><span class="o">&lt;</span><span class="n">http</span><span class="ss">:/</span><span class="o">/</span><span class="n">www</span><span class="p">.</span><span class="nf">gnu</span><span class="p">.</span><span class="nf">org</span><span class="o">/</span><span class="n">software</span><span class="o">/</span><span class="n">gdb</span><span class="o">/</span><span class="n">bugs</span><span class="o">/&gt;.</span>
-<span class="p">(</span><span class="n">cuda</span><span class="o">-</span><span class="n">gdb</span><span class="p">)</span></code></pre></figure>
+<div class="highlighter-rouge"><pre class="highlight"><code>Dependency Error: Yikes! It looks like you don’t have jekyll-paginate     or one of its dependencies installed. In order to use Jekyll as currently configured, you’ll need to install this gem. The full error message from Ruby is: ‘cannot load such file – jekyll-paginate’ If you run into trouble, you can find helpful resources at Getting Help
 
-<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="p">(</span><span class="n">cuda</span><span class="o">-</span><span class="n">gdb</span><span class="p">)</span> <span class="n">set</span> <span class="n">cuda</span> <span class="n">software_preemption</span> <span class="n">on</span>
-<span class="p">(</span><span class="n">cuda</span><span class="o">-</span><span class="n">gdb</span><span class="p">)</span> <span class="n">file</span> <span class="n">a</span><span class="p">.</span><span class="nf">out</span> 
-<span class="no">Reading</span> <span class="n">symbols</span> <span class="n">from</span> <span class="sr">/home/</span><span class="n">dutoeserver</span><span class="o">/</span><span class="n">xtk</span><span class="o">/</span><span class="no">Exercises</span><span class="o">/</span><span class="no">Test1</span><span class="o">/</span><span class="n">a</span><span class="p">.</span><span class="nf">out</span><span class="p">.</span><span class="nf">.</span><span class="p">.</span><span class="nf">done</span><span class="o">.</span>
-<span class="p">(</span><span class="n">cuda</span><span class="o">-</span><span class="n">gdb</span><span class="p">)</span> <span class="n">b</span> <span class="mi">2</span>
-<span class="no">Breakpoint</span> <span class="mi">1</span> <span class="n">at</span> <span class="mh">0x402bf2</span><span class="p">:</span> <span class="n">file</span> <span class="n">myFirstKernel</span><span class="p">.</span><span class="nf">cu</span><span class="p">,</span> <span class="n">line</span> <span class="mi">2</span><span class="o">.</span>
-<span class="p">(</span><span class="n">cuda</span><span class="o">-</span><span class="n">gdb</span><span class="p">)</span> <span class="n">r</span></code></pre></figure>
+jekyll 3.1.2 | Error: jekyll-paginate 我在最初使用的时候出现了这个错误。 前提是已经使用`gem install jekyll-paginate`安装了jekyll-paginate,并提示安装成功。并且使用`gem listkeyi` 查看到。 ## 解决方法## 1. 在_config.yml文件中添加如下代码
+</code></pre>
+</div>
 
-<p>具体解释一下：
-在gdb中所有不冲突的指令都可以输入简写，即第一个首字母
-1.允许在图形界面模式下进行调试。
-<code class="highlighter-rouge">set cuda software-preemption on</code><br />
-2.指定要调试的.out文件   <code class="highlighter-rouge">file a.out</code><br />
-3.<code class="highlighter-rouge">b 20 </code> 从20行设置断点 b 作为break的简写<br />
-4.r 运行<br />
-5.n 继续执行下一步 next 5 往后执行5行<br />
-6.p result 输出result变量的值 printf
-7.quit 退出调试</p>
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby">   
+<span class="ss">gems: 
+  </span><span class="o">-</span> <span class="n">jekyll</span><span class="o">-</span><span class="n">paginate</span>
+<span class="ss">exclude:
+  </span><span class="o">-</span> <span class="no">Gemfile</span>
+  <span class="o">-</span> <span class="no">Gemfile</span><span class="p">.</span><span class="nf">lock</span>
+  <span class="o">-</span> </code></pre></figure>
 
+<p>2.编辑Gemfilewen在其中添加 
+<code class="highlighter-rouge">gem "jekyll-paginate"</code></p>
 
 
                 <hr style="visibility: hidden;">
@@ -242,12 +224,19 @@
                 <ul class="pager">
                     
                     <li class="previous">
-                        <a href="/jekyll/2017/03/15/welcome-to-jekyll/" data-toggle="tooltip" data-placement="top" title="Welcome to Jekyll!">
+                        <a href="/jekyll/2017/03/14/welcome-to-jekyll/" data-toggle="tooltip" data-placement="top" title="Welcome to Jekyll!">
                         Previous<br>
                         <span>Welcome to Jekyll!</span>
                         </a>
                     </li>
                     
+                    
+                    <li class="next">
+                        <a href="/cuda/2017/03/14/CUDA-GDB%E4%BD%BF%E7%94%A8/" data-toggle="tooltip" data-placement="top" title="How to use cuda-gdb debug">
+                        Next<br>
+                        <span>How to use cuda-gdb debug</span>
+                        </a>
+                    </li>
                     
                 </ul>
 
@@ -266,31 +255,6 @@
                 col-lg-8 col-lg-offset-2
                 col-md-10 col-md-offset-1
                 sidebar-container">
-
-                <!-- Featured Tags -->
-                
-                <section>
-                    <hr class="hidden-sm hidden-xs">
-                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
-                    <div class="tags">
-        				
-                            
-        				
-                            
-        				
-                            
-        				
-                            
-        				
-                            
-        				
-                            
-        				
-                            
-        				
-        			</div>
-                </section>
-                
 
                 <!-- Friends Blog -->
                 
@@ -355,33 +319,15 @@
 
                     <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
                     
-                    <li>
-                        <a target="_blank" href="https://www.zhihu.com/people/xu-di-86-67">
-                            <span class="fa-stack fa-lg">
-                                <i class="fa fa-circle fa-stack-2x"></i>
-                                <i class="fa  fa-stack-1x fa-inverse">知</i>
-                            </span>
-                        </a>
-                    </li>
-                    
                     
 
 
                     
-                    
-                    <li>
-                        <a target="_blank" href="https://github.com/superkunkunkun">
-                            <span class="fa-stack fa-lg">
-                                <i class="fa fa-circle fa-stack-2x"></i>
-                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
-                            </span>
-                        </a>
-                    </li>
                     
                     
                 </ul>
                 <p class="copyright text-muted">
-                    Copyright &copy; Bien 2017
+                    Copyright &copy; Memory 2017
                     <br>
                     Theme by <a href="http://huangxuan.me">Hux</a> |
                     <iframe
@@ -474,21 +420,6 @@
 
 
 <!-- Google Analytics -->
-
-<script>
-    // dynamic User by Hux
-    var _gaId = 'UA-90855596-1';
-    var _gaDomain = 'auto';
-
-    // Originial
-    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-    ga('create', _gaId, _gaDomain);
-    ga('send', 'pageview');
-</script>
 
 
 

@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="每个胜利背后都有许多尝试">
+    <meta name="keywords"  content="">
+    <meta name="theme-color" content="#000000">
+    
+    <title>在云计算和集群环境中使用CUDA - 阿坤的博客 | KUN Blog</title>
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/pwa/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:5001/mpi/2017/04/12/%E5%9C%A8%E4%BA%91%E8%AE%A1%E7%AE%97%E5%92%8C%E9%9B%86%E7%BE%A4%E7%8E%AF%E5%A2%83%E4%B8%AD%E4%BD%BF%E7%94%A8CUDA/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Pygments Github CSS -->
+    <link rel="stylesheet" href="/css/syntax.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Memory</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+                    
+                    <li>
+                        <a href="/about/">About</a>
+                    </li>
+                    
+                    <li>
+                        <a href="/tags/">Tags</a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.png" width="0" height="0"> -->
+<!-- <img src="/img/post-bg-universe.jpg" width="0" height="0"> -->
+
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/post-bg-universe.jpg')
+    }
+
+    
+</style>
+<header class="intro-header" >
+    <div class="header-mask"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#CUDA" title="CUDA">CUDA</a>
+                        
+                        <a class="tag" href="/tags/#GPU" title="GPU">GPU</a>
+                        
+                        <a class="tag" href="/tags/#MPI" title="MPI">MPI</a>
+                        
+                    </div>
+                    <h1>在云计算和集群环境中使用CUDA</h1>
+                    
+                    
+                    <h2 class="subheading">MPI的使用</h2>
+                    
+                    <span class="meta">Posted by Memory on April 12, 2017</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<p>使用MPI使CUDA扩展至使用上千个节点，NVIDIA的GPUDirect技术加速了MPI发送（<strong>MPI_send</strong>)和（<strong>MPI_Receive</strong>)等关键操作。通过MPI个GPUDirect的使用，利用这些API创建云计算在计算集群上运行的程序。   <br />
+<strong>MPI</strong>消息传递接口，定义了并行计算的拓扑结构，用来将一组进场组织成一个MPI会话，<strong>MPI会话的尺寸在整个程序执行生命周期中是固定不变的</strong>。
+MPI中所有的并行都是显示的，编程者需要负责制定正确的并行度，并实现MPI程序构建中的并行算法。</p>
+
+<h2 id="mpi通信器"><strong>MPI通信器</strong></h2>
+
+<p>通信器是一个分布式对象，用于完成集中式和点对点的通信，集中式通信是指与制定通信组中所有处理器有关的MPI函数，点对点通信用于单个MPI进程之间的传递。 <br />
+<strong>点对点通信</strong> —单个进程对单个进程的通信</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>– Blocking(阻塞) :一个函数须等待操作完成才返回,返回后用户可以重新使用所占用的资源
+
+– Non-blocking(非阻塞):一个函数不必等待操作完成便可返回    
+</code></pre>
+</div>
+
+<p>完成两个不同MPI之间的通信，其中一个进程进行发送操作，另一个进程进行对应的读操作。MPI保证所有的消息都可以完整无误的送达对端。  MPI_Send()和MPI——Recv()通常采用<strong>暂停</strong>方式处理两个MPI进程直接的消息传递。 暂停意味着发送消息的进程将一直等待信息被完整准确发送后再返回；而接受消息的进程也将一直等待消息被完整正确的接收后再返回。   <br />
+默认情况下，在调用<strong>MPI_init()</strong> 后，MPI会立刻创建<strong>MPI_COMM_WORLD</strong>通信器。 MPI_COMM_WORLD包含了程序中所有的MPI进程。<br />
+一个MPI程序可以创建多个相互独立的通信器，用来独立处理一组任务相关的消息，或从一组进程到另一组相关进程之间的通信。</p>
+
+<p><strong>组通信</strong>—是一个通信域中的所有进程都参加的全局通信操作</p>
+
+<p>群集通信，按照通信方向的不同，又可以分为三种：一对多通信，多对一通信和多对多通信</p>
+
+<ul>
+  <li>
+    <p>一对多通信：一个进程向其它所有的进程发送消息，这个负责发送消息的进程叫做Root进程</p>
+  </li>
+  <li>
+    <p>多对一通信：一个进程负责从其它所有的进程接收消息，这个接收的进程也叫做Root进程</p>
+  </li>
+  <li>
+    <p>多对多通信：每一个进程都向其它所有的进程发送或者接收消息</p>
+  </li>
+</ul>
+
+<p><strong>远程存储访问</strong></p>
+<ul>
+  <li>远程存储访问即直接对非本地的存储空间进行访问</li>
+  <li>远程存储的访问 窗口是具体的实现形式 通过窗口操作实现来实现单边通信,通过对窗口的管理操作来实现对窗口操作的同步控制</li>
+</ul>
+
+<h2 id="mpi进程号"><strong>MPI进程号</strong></h2>
+
+<p>在通信器内，每个线程在其初始化后，系统都会分配一个唯一的整数识别码。 进程号也称为“任务ID”，用于条件判断操作，用来控制MPI线程的执行。
+MPI程序通常选用进程号为0的进程作为主进程，通过主进程来控制其它进程号大于0的进程。
+MPI程序结构图通常如下图所示：
+<img src="http://i.imgur.com/EtVWKpN.png" alt="" /></p>
+
+<h2 id="主从模式"><strong>主从模式</strong></h2>
+
+<p>MPI的通用设计模式是主从模式，进程号为0的被定义为主进程，该进程用来管理其它所有进程的活动。下面是构建主从模式的MPI代码</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="no">MPI_Comm_size</span><span class="p">(</span><span class="no">MPI_COMM_WORLD</span><span class="p">.</span><span class="nf">&amp;</span><span class="n">numtasks</span><span class="p">);</span>
+<span class="no">MPI_Comm_rank</span><span class="p">(</span><span class="no">MPI_COMM_WORLD</span><span class="p">.</span><span class="nf">&amp;</span><span class="n">rank</span><span class="p">);</span>
+<span class="k">if</span><span class="p">(</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+   <span class="sr">//</span><span class="err">此处为主进程代码</span>
+<span class="p">}</span><span class="k">else</span> <span class="p">{</span>
+   <span class="sr">//</span><span class="err">此次为从进程代码</span>
+<span class="p">}</span></code></pre></figure>
+
+<h2 id="mpi样例程序"><strong>MPI样例程序</strong></h2>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="c1">#include &lt;stdio.h&gt;</span>
+<span class="c1">#include &lt;mpi.h&gt;</span>
+
+<span class="n">main</span><span class="p">(</span> <span class="n">int</span> <span class="n">argc</span><span class="p">,</span> <span class="n">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[]</span> <span class="p">)</span>
+<span class="p">{</span>
+	<span class="n">int</span> <span class="n">myRank</span><span class="p">,</span><span class="n">numProcs</span><span class="p">;</span>
+
+	<span class="no">MPI_Init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">argc</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">argv</span><span class="p">);</span>
+	<span class="no">MPI_Comm_rank</span><span class="p">(</span><span class="no">MPI_COMM_WORLD</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">myRank</span><span class="p">);</span><span class="sr">//</span><span class="err">获取进程</span><span class="no">ID</span>
+	<span class="no">MPI_Comm_size</span><span class="p">(</span><span class="no">MPI_COMM_WORLD</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">numProcs</span><span class="p">);</span><span class="sr">//</span><span class="err">获取进程数</span>
+	<span class="nb">printf</span><span class="p">(</span><span class="s2">"Process %d of %d say：Hello World!</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="n">myRank</span><span class="p">,</span> <span class="n">numProcs</span><span class="p">);</span>
+	<span class="no">MPI_Finalize</span><span class="p">();</span>
+<span class="p">}</span></code></pre></figure>
+
+<p><strong>编译和运行方式</strong>   <br />
+mpic++ helloWord.cpp -o helloWord  （生成可执行程序）   <br />
+mpirun -f machines -np 4 ./helloWord</p>
+
+<ul>
+  <li>
+    <p>machines:配置文件，指定节点列表</p>
+  </li>
+  <li>
+    <p>np:指定启动的进程数</p>
+  </li>
+</ul>
+
+<p><img src="http://i.imgur.com/mfWBatv.png" alt="" /></p>
+<h2 id="mpi常用api">MPI常用API</h2>
+<p><strong>点对点通信</strong> <br />
+**MPI_Send  **</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">int</span> <span class="no">MPI_Send</span><span class="p">(</span><span class="n">void</span><span class="o">*</span> <span class="n">buf</span><span class="p">,</span> <span class="n">int</span> <span class="n">count</span><span class="p">,</span> <span class="no">MPI_Datatype</span>  <span class="n">datatype</span><span class="p">,</span> <span class="n">int</span> <span class="n">dest</span><span class="p">,</span> <span class="n">int</span> <span class="n">tag</span><span class="p">,</span> <span class="no">MPI</span> <span class="n">_Comm</span> <span class="n">comm</span><span class="p">);</span>
+
+<span class="o">-</span> <span class="no">IN</span> <span class="n">buf</span>    		<span class="err">发送缓冲区的起始地址</span>
+<span class="o">-</span> <span class="no">IN</span> <span class="n">count</span> 		<span class="err">要发送信息的元素个数</span>
+<span class="o">-</span> <span class="no">IN</span> <span class="n">datatype</span>	<span class="err">发送信息的数据类型</span>
+<span class="o">-</span> <span class="no">IN</span> <span class="n">dest</span> 		<span class="err">目标进程的</span><span class="n">rank</span><span class="err">值</span>
+<span class="o">-</span> <span class="no">IN</span> <span class="n">tag</span>		<span class="err">消息标签</span>
+<span class="o">-</span> <span class="no">IN</span> <span class="n">comm</span> 	<span class="err">通信域</span></code></pre></figure>
+
+<p>将发送缓冲区中的count个datatype数据类型的数据发送到目的进程</p>
+
+<p>**MPI_Recv **</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">int</span> <span class="no">MPI_Recv</span><span class="p">(</span><span class="n">void</span><span class="o">*</span> <span class="n">buf</span><span class="p">,</span> <span class="n">int</span> <span class="n">count</span><span class="p">,</span> <span class="no">MPI_Datatype</span> <span class="n">datatype</span><span class="p">,</span><span class="n">int</span> <span class="n">source</span><span class="p">,</span> <span class="n">int</span> <span class="n">tag</span><span class="p">,</span> 
+	<span class="no">MPI</span> <span class="n">_Comm</span> <span class="n">comm</span><span class="p">,</span><span class="no">MPI_Status</span> <span class="o">*</span> <span class="n">status</span><span class="p">);</span>
+
+<span class="o">-</span><span class="no">IN</span> <span class="n">buf</span>    		<span class="err">接收缓冲区的起始地址</span>
+
+<span class="o">-</span><span class="no">IN</span> <span class="n">count</span> 		<span class="err">要接收信息的元素个数</span>
+
+<span class="o">-</span><span class="no">IN</span> <span class="n">datatype</span>	<span class="err">接收信息的数据类型</span>
+
+<span class="o">-</span><span class="no">IN</span> <span class="n">source</span> 	<span class="err">接收数据的来源</span>
+
+<span class="o">-</span><span class="no">IN</span> <span class="n">tag</span>		<span class="err">消息标签</span>
+
+<span class="o">-</span><span class="no">IN</span> <span class="n">comm</span> 	<span class="err">通信域</span>
+
+<span class="o">-</span><span class="no">IN</span> <span class="n">status</span> 	<span class="err">包含实际接收到的消息的有关信息</span>  </code></pre></figure>
+
+<p><strong>组通信</strong> <br />
+**MPI_Bcast  **</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">int</span> <span class="no">MPI_Bcast</span><span class="p">(</span><span class="n">void</span><span class="o">*</span> <span class="n">buffer</span><span class="p">,</span><span class="n">int</span> <span class="n">count</span><span class="p">,</span><span class="no">MPI_Datatype</span> <span class="n">datatype</span><span class="p">,</span><span class="n">int</span> <span class="n">root</span><span class="p">,</span> <span class="no">MPI_Comm</span> <span class="n">comm</span><span class="p">)</span>    
+<span class="o">-</span><span class="no">IN</span><span class="o">/</span><span class="no">OUT</span> <span class="n">buffer</span>	 <span class="err">通信消息缓冲区的起始地址</span>   
+<span class="o">-</span><span class="no">IN</span> <span class="n">count</span> 		<span class="err">将广播出去</span><span class="o">/</span><span class="err">或接收的数据个数</span>   
+<span class="o">-</span><span class="no">IN</span> <span class="n">datatype</span> 	<span class="err">广播</span><span class="o">/</span><span class="err">接收数据的数据类型</span>     
+<span class="o">-</span><span class="no">IN</span> <span class="n">root</span> 		<span class="err">广播数据的根进程的标识号</span>   
+<span class="o">-</span><span class="no">IN</span> <span class="n">comm</span> 	<span class="err">通信域</span>   </code></pre></figure>
+
+<p>**MPI_Gather   **</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">int</span> <span class="no">MPI_Gather</span><span class="p">(</span><span class="n">void</span><span class="o">*</span> <span class="n">sendbuf</span><span class="p">,</span> <span class="n">int</span> <span class="n">sendcount</span><span class="p">,</span> <span class="no">MPI_Datatype</span> <span class="n">sendtype</span><span class="p">,</span><span class="n">void</span><span class="o">*</span> <span class="n">recvbuf</span><span class="p">,</span> <span class="n">int</span> <span class="n">recvcount</span><span class="p">,</span>
+	<span class="no">MPI_Datatype</span> <span class="n">recvtype</span><span class="p">,</span><span class="n">int</span> <span class="n">root</span><span class="p">,</span> <span class="no">MPI_Comm</span> <span class="n">comm</span><span class="p">)</span>  
+<span class="o">-</span><span class="no">IN</span> <span class="n">sendbuf</span> 	<span class="err">发送消息缓冲区的起始地址</span>   
+<span class="o">-</span><span class="no">IN</span> <span class="n">sendcount</span>	<span class="err">发送消息缓冲区中的数据个数</span>   
+<span class="o">-</span><span class="no">IN</span> <span class="n">sendtype</span> 	<span class="err">发送消息缓冲区中的数据类型</span>   
+<span class="o">-</span><span class="no">OUT</span> <span class="n">recvbuf</span> 	<span class="err">接收消息缓冲区的起始地址</span>  
+<span class="o">-</span><span class="no">IN</span> <span class="n">recvcount</span> 	<span class="err">待接收的元素个数</span><span class="p">(</span><span class="err">仅对于根进程有意义</span><span class="p">)</span> 
+<span class="o">-</span><span class="no">IN</span> <span class="n">recvtype</span> 	<span class="err">接收元素的数据类型</span><span class="p">(</span><span class="err">仅对于根进程有意义</span><span class="p">)</span>   
+<span class="o">-</span><span class="no">IN</span> <span class="n">root</span> 		<span class="err">接收进程的序列号</span>   
+<span class="o">-</span><span class="no">IN</span> <span class="n">comm</span> 	<span class="err">通信域</span>   </code></pre></figure>
+
+<p><strong>远程存储访问</strong>
+<strong>MPI_Win_create 创建窗口</strong></p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">int</span> <span class="no">MPI_Win_create</span><span class="p">(</span><span class="n">void</span> <span class="o">*</span> <span class="n">base</span><span class="p">,</span> <span class="no">MPI_Aint</span> <span class="n">size</span><span class="p">,</span> <span class="n">int</span> <span class="n">disp_unit</span><span class="p">,</span> <span class="no">MPI_Info</span> <span class="n">info</span><span class="p">,</span> 
+		<span class="no">MPI_Comm</span> <span class="n">comm</span><span class="p">,</span><span class="no">MPI_Win</span> <span class="o">*</span> <span class="n">win</span><span class="p">)</span> 
+<span class="o">-</span> <span class="no">IN</span> <span class="n">base</span>		 <span class="err">窗口空间的初始地址</span>   
+<span class="o">-</span> <span class="no">IN</span> <span class="n">size</span> 		<span class="err">以字节为单位的窗口空间大小</span>   
+<span class="o">-</span> <span class="no">IN</span> <span class="n">disp_unit</span> 	<span class="err">一个偏移单位对应的字节数</span>   
+<span class="o">-</span> <span class="no">IN</span> <span class="n">comm</span> 		<span class="err">通信域</span>    
+<span class="o">-</span> <span class="no">IN</span> <span class="n">info</span> 		<span class="err">传递给运行时的信息</span>  
+<span class="o">-</span> <span class="no">OUT</span> <span class="n">win</span> 		<span class="err">返回的窗口对象</span>   </code></pre></figure>
+
+<p><strong>创建窗口是一个组调用</strong>  <br />
+**MPI_Win_free **   释放窗口</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby">  
+<span class="no">MPI_Win_free</span><span class="p">(</span><span class="no">MPI_Win</span><span class="o">*</span><span class="n">win</span><span class="p">)</span>
+
+<span class="o">-</span> <span class="no">INOUT</span> <span class="n">win</span> <span class="err">窗口对象</span> <span class="err">输入为要释放的窗口</span> <span class="err">返回为空</span> </code></pre></figure>
+
+<p><strong>释放窗口是一个组调用</strong></p>
+
+<p>**MPI_Put 向窗口写 **</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">int</span> <span class="no">MPI_Put</span><span class="p">(</span><span class="n">void</span> <span class="o">*</span> <span class="n">origin_addr</span><span class="p">,</span> <span class="n">int</span> <span class="n">origin_count</span><span class="p">,</span> <span class="no">MPI_Datatype</span> <span class="n">origin_datatype</span><span class="p">,</span><span class="n">int</span> <span class="n">target_rank</span><span class="p">,</span> 
+	<span class="no">MPI_Aint</span> <span class="n">target_disp</span><span class="p">,</span> <span class="n">int</span> <span class="n">target_count</span><span class="p">,</span> <span class="no">MPI_Datatype</span>  <span class="n">target_datatype</span><span class="p">,</span> <span class="no">MPI_Win</span> <span class="n">win</span><span class="p">)</span>
+<span class="o">-</span> <span class="no">IN</span> <span class="n">origin_addr</span> 		<span class="err">本地发送缓冲区起始地址</span>   
+<span class="o">-</span> <span class="no">IN</span> <span class="n">origin_count</span> 		<span class="err">本地发送缓冲区中将要写到窗口内的数据个数</span>   
+<span class="o">-</span> <span class="no">IN</span> <span class="n">origin_datatype</span> 		<span class="err">本地发送缓冲区中的数据类型</span>   
+<span class="o">-</span> <span class="no">IN</span> <span class="n">target_rank</span> 		<span class="err">目标进程标识</span>   
+<span class="o">-</span> <span class="no">IN</span> <span class="n">target_disp</span> 		<span class="err">相对于写窗口起始地址的偏移单位</span> <span class="err">从该位置开始写</span>   
+<span class="o">-</span> <span class="no">IN</span> <span class="n">target_count</span> 		<span class="err">以指定的数据类型为单位</span> <span class="err">写入窗口的数据的个数</span>   
+<span class="o">-</span> <span class="no">IN</span> <span class="n">target_datatype</span> 		<span class="err">写数据的数据类型</span>   
+<span class="o">-</span> <span class="no">IN</span> <span class="n">win</span> 			<span class="err">窗口对象</span>   </code></pre></figure>
+
+<p><strong>MPI_Get 从窗口读</strong></p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">int</span> <span class="no">MPI_Get</span><span class="p">(</span><span class="n">void</span> <span class="o">*</span><span class="n">origin_addr</span><span class="p">,</span> <span class="n">int</span> <span class="n">origin_count</span><span class="p">,</span> <span class="no">MPI_Datatype</span> <span class="n">origin_datatype</span><span class="p">,</span> <span class="n">int</span> <span class="n">target_rank</span><span class="p">,</span> 
+	<span class="no">MPI_Aint</span> <span class="n">target_disp</span><span class="p">,</span> <span class="n">int</span> <span class="n">target_count</span><span class="p">,</span> <span class="no">MPI_Datatype</span> <span class="n">target_datatype</span><span class="p">,</span> <span class="no">MPI_Win</span> <span class="n">win</span><span class="p">)</span> 
+<span class="o">-</span> <span class="no">OUT</span> <span class="n">origin_addr</span> 		<span class="err">本地接收缓冲区的起始地址</span>   
+<span class="o">-</span> <span class="no">IN</span> <span class="n">origin_count</span> 		<span class="err">以指定的数据类型为单位</span> <span class="err">接收数据的个数</span>   
+<span class="o">-</span> <span class="no">IN</span> <span class="n">origin_</span>			<span class="n">datatype</span> <span class="err">接收数据的数据类型</span>   
+<span class="o">-</span> <span class="no">IN</span> <span class="n">target_rank</span> 		<span class="err">将要读的窗口所在的进程标识</span>   
+<span class="o">-</span> <span class="no">IN</span> <span class="n">target_disp</span> 		<span class="err">读取位置相对于窗口起始地址偏移单位的个数</span>   
+<span class="o">-</span> <span class="no">IN</span> <span class="n">target_count</span> 		<span class="err">以指定的数据类型为单位</span> <span class="err">读取数据的个数</span>   
+<span class="o">-</span> <span class="no">IN</span> <span class="n">target_datatype</span> 		<span class="err">读取数据的数据类型</span>   
+<span class="o">-</span> <span class="no">IN</span> <span class="n">win</span> <span class="err">窗口对象</span>   </code></pre></figure>
+
+<p>下面是一个mpi结合opencv进行文件读写，数据传输的程序</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>        #include&lt;opencv2/opencv.hpp&gt;   
+        #include&lt;mpi.h&gt;       
+	using namespace cv;       
+	int MPI_OpenCV_Cuda_DEMO(int argc, char* argv[])     
+	{
+		int myid, numprocs;
+		int namelen;
+		char processor_name[MPI_MAX_PROCESSOR_NAME];
+		MPI_Init(&amp;argc, &amp;argv);
+		MPI_Comm_rank(MPI_COMM_WORLD, &amp;myid);    //进程编号
+		MPI_Comm_size(MPI_COMM_WORLD, &amp;numprocs);//numprocs进程数
+		MPI_Get_processor_name(processor_name, &amp;namelen);
+		MPI_Win window; //创建一个窗口
+		int winSize = 0;
+		if (myid == 0)//主节点进行数据读入    
+		{
+			Mat image = imread("./image.jpg",0);  
+	        //通过opencv的函数imread读取图片确定所需开辟远地窗口的大小   
+			winSize = image.rows*image.cols*sizeof(float);
+	        //开辟远地窗口时需要设定窗口大小。这里设置0号节点winSize的大小，其他节点仍然是0大小   
+		}
+		//开辟远地数据窗口   
+		float *matWin=new float[512*512*5] ; //一般给一个足够大的值  
+		MPI_Win_create(matWin, winSize, sizeof(MPI_FLOAT), MPI_INFO_NULL, MPI_COMM_WORLD, &amp;window);
+	
+		if (myid == 0) //确定主进程的工作
+		{  
+			Mat image = imread("./image.jpg", 0);//这是opencv的图片读取操作          
+			image.convertTo(image, CV_32FC1);
+			normalize(image, image,1,0,CV_MINMAX);
+			//这是对远地窗口进行写数据操作，这里使用的是MPI的排斥锁 MPI_WIN_LOCK(MPI_LOCK_EXCLUSIVE， ， ，)
+			MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, window);
+			MPI_Put(image.data, image.rows*image.step1(), MPI_FLOAT, 0, 0, image.rows*image.step1(), MPI_FLOAT, window);
+			MPI_Win_unlock(0, window);
+			
+			int dimension[2]{image.rows,image.cols};
+			MPI_Send(dimension, 2, MPI_INT32_T, 1, 101, MPI_COMM_WORLD);//这是一个mpi的发送操作
+			//101为消息代号，接收时代号与之对应
+		}
+		if (myid != 0)
+		{
+			MPI_Status status_t;
+			int dimension[2]{ 0,0 };
+			//这是一个MPI的接受操作，在接受到数据之前子节点一直在等待
+			MPI_Recv(dimension, 2, MPI_INT32_T, 0, 101, MPI_COMM_WORLD, &amp;status_t);
+			Mat data(dimension[0], dimension[1], CV_32FC1);
+			//接受到了图片的长和宽之后开始进行从原地窗口的读操作，这里使用的是共享锁
+			MPI_Win_lock(MPI_LOCK_SHARED, 0, 0, window);
+			MPI_Get(data.data, data.rows*data.cols, MPI_FLOAT, 0, 0, data.rows*data.cols,MPI_FLOAT, window);
+			MPI_Win_unlock(0, window);
+			//执行了一个图片数据矩阵的屏幕输出来验证子节点收到了数据
+			for (int i = 0; i &lt; data.rows; i++)
+			{
+				for (int j = 0; j &lt; data.cols; j++)
+				{
+					if ((data.data[i*data.cols+ j])&gt;0.1)
+					{
+						printf("%0.2f ", *((float *)(data.data)+i*data.cols+j));
+					}
+				}
+				printf("\n");
+			}		
+		}
+		//所有节点同步，然后一起结束
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Win_free(&amp;window);  //释放远地窗口
+		MPI_Finalize(); 
+		delete[]matWin; //注意matWin中包含的数组，不要重复释放以免出现对动态分配的内存释放多次
+		return 0;
+	}
+</code></pre>
+</div>
+
+
+
+                <hr style="visibility: hidden;">
+
+                
+
+
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/cuda/2017/04/12/CUDA%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/" data-toggle="tooltip" data-placement="top" title="CUDA错误处理+示例">
+                        Previous<br>
+                        <span>CUDA错误处理+示例</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2017/04/28/MPI+CUDA%E6%B7%B7%E5%90%88%E7%BC%96%E8%AF%91/" data-toggle="tooltip" data-placement="top" title="MPI+CUDA混合编译">
+                        Next<br>
+                        <span>MPI+CUDA混合编译</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+
+
+                
+
+                
+
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Friends Blog -->
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    
+                    <!-- add jianshu add target = "_blank" to <a> by BY -->
+                    
+                    
+
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    
+
+
+                    
+                    
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Memory 2017
+                    <br>
+                    Theme by <a href="http://huangxuan.me">Hux</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huxpro&repo=huxpro.github.io&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- Service Worker -->
+
+<script type="text/javascript">
+    if(navigator.serviceWorker){
+        // For security reasons, a service worker can only control the pages that are in the same directory level or below it. That's why we put sw.js at ROOT level.
+        navigator.serviceWorker
+            .register('/sw.js')
+            .then((registration) => {console.log('Service Worker Registered. ', registration)})
+            .catch((error) => {console.log('ServiceWorker registration failed: ', error)})
+    }
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/ 
+     - https://github.com/jneen/rouge/wiki/list-of-supported-languages-and-lexers   
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'b50bf2b12b5338a1845e33832976fd68';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+<!-- Side Catalog -->
+
+
+
+
+
+<!-- Image to hack wechat -->
+<img src="/img/my_icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

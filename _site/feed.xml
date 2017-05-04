@@ -1,18 +1,689 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Bien</title>
+    <title>Memory</title>
     <description>每个胜利背后都有许多尝试</description>
-    <link>http://localhost:4000/</link>
-    <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Thu, 16 Mar 2017 17:16:53 +0800</pubDate>
-    <lastBuildDate>Thu, 16 Mar 2017 17:16:53 +0800</lastBuildDate>
+    <link>http://localhost:5001/</link>
+    <atom:link href="http://localhost:5001/feed.xml" rel="self" type="application/rss+xml" />
+    <pubDate>Wed, 03 May 2017 17:30:02 -0700</pubDate>
+    <lastBuildDate>Wed, 03 May 2017 17:30:02 -0700</lastBuildDate>
     <generator>Jekyll v3.4.2</generator>
     
       <item>
+        <title>MPI+CUDA混合编译</title>
+        <description>&lt;p&gt;努力了很久写完了Apriori关联聚类的CUDA程序，为了适应更大数量级的文本文件，我要开始把CUDA_Apriori算法再用MPI并行。因为是文本关联聚类，文件的分割会破坏原本的关联关系，所以实现并行的难度就比较高了。    &lt;br /&gt;
+暂时的可行方法如下：  &lt;br /&gt;
+K为当前的频繁度，当K&amp;gt;1时  &lt;br /&gt;
+&lt;img src=&quot;http://i.imgur.com/WAqiUqK.png&quot; alt=&quot;&quot; /&gt;   &lt;br /&gt;
+其中Lk为K阶频繁项集，各从节点的LK加和得到CGk（全局频繁项候选集），在各个从节点只做频繁项的计数操作，不计算支持度的计算。&lt;br /&gt;
+那么实现这一功能的第一步就是文本的分割和传输：&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;MPI初始化等一系列操作&lt;/li&gt;
+  &lt;li&gt;读取文本文件，根据行和每行中的最大元素数量确定winSize大小&lt;/li&gt;
+  &lt;li&gt;创建窗口&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;myid == 0&lt;/code&gt; 为主节点 ，进行文本文件的读取，得到transactions[]数组，对远地窗口进行数据写操作 &lt;code class=&quot;highlighter-rouge&quot;&gt;MPI_PUT(transactions, lines*30, MPI_UNSIGNED_CHAR, 0, 0, lines*30, MPI_INT32_T, window)&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;其它数据以广播的方式发送到各从节点 &lt;code class=&quot;highlighter-rouge&quot;&gt;MPI_Send( &amp;amp;lines,1, MPI_INT32_T, i, 101, MPI_COMM_WORLD)&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;myid != 0&lt;/code&gt; 为各从节点，   &lt;code class=&quot;highlighter-rouge&quot;&gt;MPI_Recv(&amp;amp;lines,1, MPI_INT32_T, 0, 101, MPI_COMM_WORLD, &amp;amp;status_t)&lt;/code&gt; 接受数据&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;MPI_Get(transactions, offset+10, MPI_INT32_T, 0, start,  offset+10 ,MPI_INT32_T, window)&lt;/code&gt; 获得数据窗口的数据&lt;/li&gt;
+  &lt;li&gt;各个从节点开始各自的计算&lt;/li&gt;
+  &lt;li&gt;结束MPI程序的运行&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;需要注意的地方&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;MPI_Send和MPI_Recv的顺序要对应，消息代号的顺序从小到大&lt;/li&gt;
+  &lt;li&gt;注意不要出现动态分配的内存释放多次&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;mpicuda混合编译&quot;&gt;MPI+CUDA混合编译&lt;/h2&gt;
+&lt;p&gt;MPI和CUDA可以放在一个文件中，该文件可以通过nvcc把.cu文件编译成.o文件，用nvcc链接成可执行程序,链接由mpiexec运行，如：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;err&quot;&gt;编译&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;nvcc&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;o&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;o&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;cu&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;I&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;~&lt;/span&gt;&lt;span class=&quot;sr&quot;&gt;/mpich-3.2/in&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;clude&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;L&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;~&lt;/span&gt;&lt;span class=&quot;sr&quot;&gt;/mpich-3.2/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lib&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lmpi&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;链接&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;nvcc&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;o&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;main&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;o&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;support&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;o&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;L&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;~&lt;/span&gt;&lt;span class=&quot;sr&quot;&gt;/mpich-3.2/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lib&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lmpi&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;运行&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;mpiexec&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+</description>
+        <pubDate>Fri, 28 Apr 2017 04:03:08 -0700</pubDate>
+        <link>http://localhost:5001/2017/04/28/MPI+CUDA%E6%B7%B7%E5%90%88%E7%BC%96%E8%AF%91/</link>
+        <guid isPermaLink="true">http://localhost:5001/2017/04/28/MPI+CUDA%E6%B7%B7%E5%90%88%E7%BC%96%E8%AF%91/</guid>
+        
+        <category>CUDA</category>
+        
+        <category>MPI</category>
+        
+        <category>gcc编译</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>在云计算和集群环境中使用CUDA</title>
+        <description>&lt;p&gt;使用MPI使CUDA扩展至使用上千个节点，NVIDIA的GPUDirect技术加速了MPI发送（&lt;strong&gt;MPI_send&lt;/strong&gt;)和（&lt;strong&gt;MPI_Receive&lt;/strong&gt;)等关键操作。通过MPI个GPUDirect的使用，利用这些API创建云计算在计算集群上运行的程序。   &lt;br /&gt;
+&lt;strong&gt;MPI&lt;/strong&gt;消息传递接口，定义了并行计算的拓扑结构，用来将一组进场组织成一个MPI会话，&lt;strong&gt;MPI会话的尺寸在整个程序执行生命周期中是固定不变的&lt;/strong&gt;。
+MPI中所有的并行都是显示的，编程者需要负责制定正确的并行度，并实现MPI程序构建中的并行算法。&lt;/p&gt;
+
+&lt;h2 id=&quot;mpi通信器&quot;&gt;&lt;strong&gt;MPI通信器&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;通信器是一个分布式对象，用于完成集中式和点对点的通信，集中式通信是指与制定通信组中所有处理器有关的MPI函数，点对点通信用于单个MPI进程之间的传递。 &lt;br /&gt;
+&lt;strong&gt;点对点通信&lt;/strong&gt; —单个进程对单个进程的通信&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;– Blocking(阻塞) :一个函数须等待操作完成才返回,返回后用户可以重新使用所占用的资源
+
+– Non-blocking(非阻塞):一个函数不必等待操作完成便可返回    
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;完成两个不同MPI之间的通信，其中一个进程进行发送操作，另一个进程进行对应的读操作。MPI保证所有的消息都可以完整无误的送达对端。  MPI_Send()和MPI——Recv()通常采用&lt;strong&gt;暂停&lt;/strong&gt;方式处理两个MPI进程直接的消息传递。 暂停意味着发送消息的进程将一直等待信息被完整准确发送后再返回；而接受消息的进程也将一直等待消息被完整正确的接收后再返回。   &lt;br /&gt;
+默认情况下，在调用&lt;strong&gt;MPI_init()&lt;/strong&gt; 后，MPI会立刻创建&lt;strong&gt;MPI_COMM_WORLD&lt;/strong&gt;通信器。 MPI_COMM_WORLD包含了程序中所有的MPI进程。&lt;br /&gt;
+一个MPI程序可以创建多个相互独立的通信器，用来独立处理一组任务相关的消息，或从一组进程到另一组相关进程之间的通信。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;组通信&lt;/strong&gt;—是一个通信域中的所有进程都参加的全局通信操作&lt;/p&gt;
+
+&lt;p&gt;群集通信，按照通信方向的不同，又可以分为三种：一对多通信，多对一通信和多对多通信&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;一对多通信：一个进程向其它所有的进程发送消息，这个负责发送消息的进程叫做Root进程&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;多对一通信：一个进程负责从其它所有的进程接收消息，这个接收的进程也叫做Root进程&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;多对多通信：每一个进程都向其它所有的进程发送或者接收消息&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;远程存储访问&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;远程存储访问即直接对非本地的存储空间进行访问&lt;/li&gt;
+  &lt;li&gt;远程存储的访问 窗口是具体的实现形式 通过窗口操作实现来实现单边通信,通过对窗口的管理操作来实现对窗口操作的同步控制&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;mpi进程号&quot;&gt;&lt;strong&gt;MPI进程号&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;在通信器内，每个线程在其初始化后，系统都会分配一个唯一的整数识别码。 进程号也称为“任务ID”，用于条件判断操作，用来控制MPI线程的执行。
+MPI程序通常选用进程号为0的进程作为主进程，通过主进程来控制其它进程号大于0的进程。
+MPI程序结构图通常如下图所示：
+&lt;img src=&quot;http://i.imgur.com/EtVWKpN.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;主从模式&quot;&gt;&lt;strong&gt;主从模式&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;p&gt;MPI的通用设计模式是主从模式，进程号为0的被定义为主进程，该进程用来管理其它所有进程的活动。下面是构建主从模式的MPI代码&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;no&quot;&gt;MPI_Comm_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;MPI_COMM_WORLD&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;numtasks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;no&quot;&gt;MPI_Comm_rank&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;MPI_COMM_WORLD&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rank&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rank&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+   &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;此处为主进程代码&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+   &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;此次为从进程代码&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;mpi样例程序&quot;&gt;&lt;strong&gt;MPI样例程序&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;c1&quot;&gt;#include &amp;lt;stdio.h&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;#include &amp;lt;mpi.h&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;myRank&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;numProcs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+	&lt;span class=&quot;no&quot;&gt;MPI_Init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+	&lt;span class=&quot;no&quot;&gt;MPI_Comm_rank&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;MPI_COMM_WORLD&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;myRank&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;获取进程&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;ID&lt;/span&gt;
+	&lt;span class=&quot;no&quot;&gt;MPI_Comm_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;MPI_COMM_WORLD&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;numProcs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;获取进程数&lt;/span&gt;
+	&lt;span class=&quot;nb&quot;&gt;printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Process %d of %d say：Hello World!&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;myRank&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;numProcs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+	&lt;span class=&quot;no&quot;&gt;MPI_Finalize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;编译和运行方式&lt;/strong&gt;   &lt;br /&gt;
+mpic++ helloWord.cpp -o helloWord  （生成可执行程序）   &lt;br /&gt;
+mpirun -f machines -np 4 ./helloWord&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;machines:配置文件，指定节点列表&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;np:指定启动的进程数&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://i.imgur.com/mfWBatv.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;h2 id=&quot;mpi常用api&quot;&gt;MPI常用API&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;点对点通信&lt;/strong&gt; &lt;br /&gt;
+**MPI_Send  **&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Datatype&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;datatype&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dest&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tag&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_Comm&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;comm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;buf&lt;/span&gt;    		&lt;span class=&quot;err&quot;&gt;发送缓冲区的起始地址&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;要发送信息的元素个数&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;datatype&lt;/span&gt;	&lt;span class=&quot;err&quot;&gt;发送信息的数据类型&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dest&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;目标进程的&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rank&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;值&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tag&lt;/span&gt;		&lt;span class=&quot;err&quot;&gt;消息标签&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;comm&lt;/span&gt; 	&lt;span class=&quot;err&quot;&gt;通信域&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;将发送缓冲区中的count个datatype数据类型的数据发送到目的进程&lt;/p&gt;
+
+&lt;p&gt;**MPI_Recv **&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Recv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;buf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Datatype&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;datatype&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tag&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+	&lt;span class=&quot;no&quot;&gt;MPI&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_Comm&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;comm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;MPI_Status&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;status&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;buf&lt;/span&gt;    		&lt;span class=&quot;err&quot;&gt;接收缓冲区的起始地址&lt;/span&gt;
+
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;要接收信息的元素个数&lt;/span&gt;
+
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;datatype&lt;/span&gt;	&lt;span class=&quot;err&quot;&gt;接收信息的数据类型&lt;/span&gt;
+
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt; 	&lt;span class=&quot;err&quot;&gt;接收数据的来源&lt;/span&gt;
+
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tag&lt;/span&gt;		&lt;span class=&quot;err&quot;&gt;消息标签&lt;/span&gt;
+
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;comm&lt;/span&gt; 	&lt;span class=&quot;err&quot;&gt;通信域&lt;/span&gt;
+
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;status&lt;/span&gt; 	&lt;span class=&quot;err&quot;&gt;包含实际接收到的消息的有关信息&lt;/span&gt;  &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;组通信&lt;/strong&gt; &lt;br /&gt;
+**MPI_Bcast  **&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Bcast&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;MPI_Datatype&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;datatype&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;root&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Comm&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;comm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;    
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;OUT&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;buffer&lt;/span&gt;	 &lt;span class=&quot;err&quot;&gt;通信消息缓冲区的起始地址&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;将广播出去&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;或接收的数据个数&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;datatype&lt;/span&gt; 	&lt;span class=&quot;err&quot;&gt;广播&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;接收数据的数据类型&lt;/span&gt;     
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;root&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;广播数据的根进程的标识号&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;comm&lt;/span&gt; 	&lt;span class=&quot;err&quot;&gt;通信域&lt;/span&gt;   &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;**MPI_Gather   **&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Gather&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sendbuf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sendcount&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Datatype&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sendtype&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;recvbuf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;recvcount&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+	&lt;span class=&quot;no&quot;&gt;MPI_Datatype&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;recvtype&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;root&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Comm&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;comm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;  
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sendbuf&lt;/span&gt; 	&lt;span class=&quot;err&quot;&gt;发送消息缓冲区的起始地址&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sendcount&lt;/span&gt;	&lt;span class=&quot;err&quot;&gt;发送消息缓冲区中的数据个数&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sendtype&lt;/span&gt; 	&lt;span class=&quot;err&quot;&gt;发送消息缓冲区中的数据类型&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;OUT&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;recvbuf&lt;/span&gt; 	&lt;span class=&quot;err&quot;&gt;接收消息缓冲区的起始地址&lt;/span&gt;  
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;recvcount&lt;/span&gt; 	&lt;span class=&quot;err&quot;&gt;待接收的元素个数&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;仅对于根进程有意义&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;recvtype&lt;/span&gt; 	&lt;span class=&quot;err&quot;&gt;接收元素的数据类型&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;仅对于根进程有意义&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;root&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;接收进程的序列号&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;comm&lt;/span&gt; 	&lt;span class=&quot;err&quot;&gt;通信域&lt;/span&gt;   &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;远程存储访问&lt;/strong&gt;
+&lt;strong&gt;MPI_Win_create 创建窗口&lt;/strong&gt;&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Win_create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;base&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Aint&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;disp_unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Info&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;info&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+		&lt;span class=&quot;no&quot;&gt;MPI_Comm&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;comm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;MPI_Win&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;win&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;base&lt;/span&gt;		 &lt;span class=&quot;err&quot;&gt;窗口空间的初始地址&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;以字节为单位的窗口空间大小&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;disp_unit&lt;/span&gt; 	&lt;span class=&quot;err&quot;&gt;一个偏移单位对应的字节数&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;comm&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;通信域&lt;/span&gt;    
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;info&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;传递给运行时的信息&lt;/span&gt;  
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;OUT&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;win&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;返回的窗口对象&lt;/span&gt;   &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;创建窗口是一个组调用&lt;/strong&gt;  &lt;br /&gt;
+**MPI_Win_free **   释放窗口&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;  
+&lt;span class=&quot;no&quot;&gt;MPI_Win_free&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;MPI_Win&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;win&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;INOUT&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;win&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;窗口对象&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;输入为要释放的窗口&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;返回为空&lt;/span&gt; &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;释放窗口是一个组调用&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;**MPI_Put 向窗口写 **&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Put&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;origin_addr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;origin_count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Datatype&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;origin_datatype&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target_rank&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+	&lt;span class=&quot;no&quot;&gt;MPI_Aint&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target_disp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target_count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Datatype&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;target_datatype&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Win&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;win&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;origin_addr&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;本地发送缓冲区起始地址&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;origin_count&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;本地发送缓冲区中将要写到窗口内的数据个数&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;origin_datatype&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;本地发送缓冲区中的数据类型&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target_rank&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;目标进程标识&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target_disp&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;相对于写窗口起始地址的偏移单位&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;从该位置开始写&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target_count&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;以指定的数据类型为单位&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;写入窗口的数据的个数&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target_datatype&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;写数据的数据类型&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;win&lt;/span&gt; 			&lt;span class=&quot;err&quot;&gt;窗口对象&lt;/span&gt;   &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;&lt;strong&gt;MPI_Get 从窗口读&lt;/strong&gt;&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;origin_addr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;origin_count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Datatype&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;origin_datatype&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target_rank&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+	&lt;span class=&quot;no&quot;&gt;MPI_Aint&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target_disp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target_count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Datatype&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target_datatype&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MPI_Win&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;win&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;OUT&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;origin_addr&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;本地接收缓冲区的起始地址&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;origin_count&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;以指定的数据类型为单位&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;接收数据的个数&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;origin_&lt;/span&gt;			&lt;span class=&quot;n&quot;&gt;datatype&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;接收数据的数据类型&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target_rank&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;将要读的窗口所在的进程标识&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target_disp&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;读取位置相对于窗口起始地址偏移单位的个数&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target_count&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;以指定的数据类型为单位&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;读取数据的个数&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target_datatype&lt;/span&gt; 		&lt;span class=&quot;err&quot;&gt;读取数据的数据类型&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;IN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;win&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;窗口对象&lt;/span&gt;   &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;下面是一个mpi结合opencv进行文件读写，数据传输的程序&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;        #include&amp;lt;opencv2/opencv.hpp&amp;gt;   
+        #include&amp;lt;mpi.h&amp;gt;       
+	using namespace cv;       
+	int MPI_OpenCV_Cuda_DEMO(int argc, char* argv[])     
+	{
+		int myid, numprocs;
+		int namelen;
+		char processor_name[MPI_MAX_PROCESSOR_NAME];
+		MPI_Init(&amp;amp;argc, &amp;amp;argv);
+		MPI_Comm_rank(MPI_COMM_WORLD, &amp;amp;myid);    //进程编号
+		MPI_Comm_size(MPI_COMM_WORLD, &amp;amp;numprocs);//numprocs进程数
+		MPI_Get_processor_name(processor_name, &amp;amp;namelen);
+		MPI_Win window; //创建一个窗口
+		int winSize = 0;
+		if (myid == 0)//主节点进行数据读入    
+		{
+			Mat image = imread(&quot;./image.jpg&quot;,0);  
+	        //通过opencv的函数imread读取图片确定所需开辟远地窗口的大小   
+			winSize = image.rows*image.cols*sizeof(float);
+	        //开辟远地窗口时需要设定窗口大小。这里设置0号节点winSize的大小，其他节点仍然是0大小   
+		}
+		//开辟远地数据窗口   
+		float *matWin=new float[512*512*5] ; //一般给一个足够大的值  
+		MPI_Win_create(matWin, winSize, sizeof(MPI_FLOAT), MPI_INFO_NULL, MPI_COMM_WORLD, &amp;amp;window);
+	
+		if (myid == 0) //确定主进程的工作
+		{  
+			Mat image = imread(&quot;./image.jpg&quot;, 0);//这是opencv的图片读取操作          
+			image.convertTo(image, CV_32FC1);
+			normalize(image, image,1,0,CV_MINMAX);
+			//这是对远地窗口进行写数据操作，这里使用的是MPI的排斥锁 MPI_WIN_LOCK(MPI_LOCK_EXCLUSIVE， ， ，)
+			MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, window);
+			MPI_Put(image.data, image.rows*image.step1(), MPI_FLOAT, 0, 0, image.rows*image.step1(), MPI_FLOAT, window);
+			MPI_Win_unlock(0, window);
+			
+			int dimension[2]{image.rows,image.cols};
+			MPI_Send(dimension, 2, MPI_INT32_T, 1, 101, MPI_COMM_WORLD);//这是一个mpi的发送操作
+			//101为消息代号，接收时代号与之对应
+		}
+		if (myid != 0)
+		{
+			MPI_Status status_t;
+			int dimension[2]{ 0,0 };
+			//这是一个MPI的接受操作，在接受到数据之前子节点一直在等待
+			MPI_Recv(dimension, 2, MPI_INT32_T, 0, 101, MPI_COMM_WORLD, &amp;amp;status_t);
+			Mat data(dimension[0], dimension[1], CV_32FC1);
+			//接受到了图片的长和宽之后开始进行从原地窗口的读操作，这里使用的是共享锁
+			MPI_Win_lock(MPI_LOCK_SHARED, 0, 0, window);
+			MPI_Get(data.data, data.rows*data.cols, MPI_FLOAT, 0, 0, data.rows*data.cols,MPI_FLOAT, window);
+			MPI_Win_unlock(0, window);
+			//执行了一个图片数据矩阵的屏幕输出来验证子节点收到了数据
+			for (int i = 0; i &amp;lt; data.rows; i++)
+			{
+				for (int j = 0; j &amp;lt; data.cols; j++)
+				{
+					if ((data.data[i*data.cols+ j])&amp;gt;0.1)
+					{
+						printf(&quot;%0.2f &quot;, *((float *)(data.data)+i*data.cols+j));
+					}
+				}
+				printf(&quot;\n&quot;);
+			}		
+		}
+		//所有节点同步，然后一起结束
+		MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Win_free(&amp;amp;window);  //释放远地窗口
+		MPI_Finalize(); 
+		delete[]matWin; //注意matWin中包含的数组，不要重复释放以免出现对动态分配的内存释放多次
+		return 0;
+	}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+</description>
+        <pubDate>Wed, 12 Apr 2017 18:20:23 -0700</pubDate>
+        <link>http://localhost:5001/mpi/2017/04/12/%E5%9C%A8%E4%BA%91%E8%AE%A1%E7%AE%97%E5%92%8C%E9%9B%86%E7%BE%A4%E7%8E%AF%E5%A2%83%E4%B8%AD%E4%BD%BF%E7%94%A8CUDA/</link>
+        <guid isPermaLink="true">http://localhost:5001/mpi/2017/04/12/%E5%9C%A8%E4%BA%91%E8%AE%A1%E7%AE%97%E5%92%8C%E9%9B%86%E7%BE%A4%E7%8E%AF%E5%A2%83%E4%B8%AD%E4%BD%BF%E7%94%A8CUDA/</guid>
+        
+        <category>CUDA</category>
+        
+        <category>GPU</category>
+        
+        <category>MPI</category>
+        
+        
+        <category>MPI</category>
+        
+      </item>
+    
+      <item>
+        <title>CUDA错误处理+示例</title>
+        <description>&lt;p&gt;在CUDA编程中，也定义了错误类型  cudaError_t  ，这个错误值一般是runtime API的返回值。当且仅当这个API返回值为cudaSuccess时，才说明这个API调用正确，使用范例如下&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;n&quot;&gt;cudaError_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cuda_ret&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;cuda_ret&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cudaMalloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;d_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;num_elements&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cuda_ret&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cudaSuccess&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;FATAL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Unable to allocate device memory&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;cuda_ret&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cudaDeviceSynchronize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cuda_ret&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cudaSuccess&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;FATAL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Unable to synchronize data&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+</description>
+        <pubDate>Wed, 12 Apr 2017 00:32:23 -0700</pubDate>
+        <link>http://localhost:5001/cuda/2017/04/12/CUDA%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/</link>
+        <guid isPermaLink="true">http://localhost:5001/cuda/2017/04/12/CUDA%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/</guid>
+        
+        <category>CUDA</category>
+        
+        <category>GPU</category>
+        
+        <category>错误处理</category>
+        
+        
+        <category>CUDA</category>
+        
+      </item>
+    
+      <item>
+        <title>Docker基础知识</title>
+        <description>&lt;p&gt;Docker 可以让开发者打包他们的应用以及依赖包到一个轻量级、可移植的容器中，然后发布到任何流行的 linux 机器上，也可以实现虚拟化。Docker可以保证在软件开发的时候的环境一致性，以及环境迁移的便捷性。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Docker镜像：在运行之后吧、会变成容器，启动Container的速度非常快，docker镜像采用了分层技术，基于一个基础镜像（docker run）&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Docker Registry：Registry是Docker镜像的中央存储仓库 (docker pull/push)&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;基础镜像可以用于创建Docker容器。镜像可以非常基础，仅仅包含操作系统比如CentOS7.1；当你在使用Dockerfile构建镜像的时候，每一个命令都会在前一个命令的基础上形成一个新层。&lt;/p&gt;
+
+&lt;h2 id=&quot;dockerfile指令&quot;&gt;&lt;strong&gt;DockerFile指令：&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;From 首先要有基础父镜像如 &lt;code class=&quot;highlighter-rouge&quot;&gt;FROM centos：centos 7.1.1503&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;MAINTAINER 维护者的信息&lt;/li&gt;
+  &lt;li&gt;ENV 指定一个环境变量，会被后续 RUN 指令使用，并在容器运行时保持，如配置时区&lt;/li&gt;
+  &lt;li&gt;ADD 复制，可以是Dockerfile所在目录的一个相对路径；
+如&lt;/li&gt;
+&lt;/ol&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;no&quot;&gt;ADD&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;supervisord&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;conf&lt;/span&gt; &lt;span class=&quot;sr&quot;&gt;/etc/su&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pervisord&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;conf&lt;/span&gt; &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+&lt;p&gt;也可以是一个URL；还可以是一个tar文件（自动解压为目录），有解压的功能。&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;RUN 用来安装基础功能如 mkdir pip install yun install&lt;/li&gt;
+  &lt;li&gt;EXPOSE 提供容器暴露端口号，如 EXPOSE 22&lt;/li&gt;
+  &lt;li&gt;ENTRYPOINT  容器启动后执行该命令，每个DockerFile只会有最后一条ENTERPOINT生效。&lt;/li&gt;
+  &lt;li&gt;VOLUME 在建立mysql时或需要保持数据时使用，创建一个可以从本地和容器的映射，当容器删除后数据库仍然保留
+    &lt;h2 id=&quot;docker指令&quot;&gt;&lt;strong&gt;Docker指令：&lt;/strong&gt;&lt;/h2&gt;
+    &lt;p&gt;在写好Dockerfile之后，就可以通过&lt;strong&gt;docker build&lt;/strong&gt;开始创建镜像啦&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;n&quot;&gt;docker&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;build&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;csphere&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;centos&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;path&lt;/span&gt; &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;其中  . 表示当前目录，在执行时会看到会有step 1 2 3 … 每执行一条都会在镜像中生成一层
+&lt;img src=&quot;http://i.imgur.com/dJG0lQr.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;docker images&lt;/strong&gt; 可以查看当前镜像
+&lt;strong&gt;Docker run&lt;/strong&gt; 可通过镜像生成容器&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;-it 交互模式&lt;/li&gt;
+  &lt;li&gt;-d 在后端启动，返回容器的长ID号&lt;/li&gt;
+  &lt;li&gt;-p 2222:2222 将容器的22端口映射到主机的2222端口&lt;/li&gt;
+  &lt;li&gt;-P 22 将容器的22端口映射到主机随机端口&lt;/li&gt;
+  &lt;li&gt;–name base: 为容器指定一个名称
+实例：&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://i.imgur.com/5lz2Tg4.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;docker ps&lt;/strong&gt; 只会显示running状态的容器 &lt;br /&gt;
+&lt;strong&gt;docker ps -a&lt;/strong&gt; 会显示所有&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;n&quot;&gt;docker&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;exec&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;it&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;website&lt;/span&gt; &lt;span class=&quot;sr&quot;&gt;/bin/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bash&lt;/span&gt;  &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;进入容器指令 ,其中website是容器名称 /bin/bash是选择进入的容器目录
+这里我用centos作为基础镜像，之后安装中间件镜像（php-fpm、MySQL）来形成应用镜像。&lt;/p&gt;
+
+&lt;p&gt;创建php-fpm镜像的Dockerfile&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;no&quot;&gt;FROM&lt;/span&gt;       &lt;span class=&quot;n&quot;&gt;csphere&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;centos&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+&lt;span class=&quot;no&quot;&gt;MAINTAINER&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;KUN&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;# Set environment variable&lt;/span&gt;
+&lt;span class=&quot;no&quot;&gt;ENV&lt;/span&gt;	&lt;span class=&quot;no&quot;&gt;APP_DIR&lt;/span&gt; &lt;span class=&quot;sr&quot;&gt;/app
+
+RUN	yum -y --skip-broken install nginx php-cli php-mysql php-pear php-ldap php-mbstring php-soap php-dom php-gd php-xmlrpc php-fpm php-mcrypt &amp;amp;&amp;amp; \ 
+    yum clean all   
+    
+RUN sed -i &quot;s/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;default_server&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;sr&quot;&gt;/&quot; /e&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nginx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nginx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;conf&lt;/span&gt;
+&lt;span class=&quot;no&quot;&gt;RUN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;daemon=off;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;sr&quot;&gt;/etc/n&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ginx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;conf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;d&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;default&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;conf&lt;/span&gt;
+&lt;span class=&quot;no&quot;&gt;ADD&lt;/span&gt;	&lt;span class=&quot;n&quot;&gt;nginx_default&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;conf&lt;/span&gt; &lt;span class=&quot;sr&quot;&gt;/etc/n&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ginx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;conf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;d&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;default&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;conf&lt;/span&gt;
+
+&lt;span class=&quot;no&quot;&gt;ADD&lt;/span&gt;	&lt;span class=&quot;n&quot;&gt;php_www&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;conf&lt;/span&gt; &lt;span class=&quot;sr&quot;&gt;/etc/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;php&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fpm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;d&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;www&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;conf&lt;/span&gt;
+&lt;span class=&quot;no&quot;&gt;RUN&lt;/span&gt;	&lt;span class=&quot;n&quot;&gt;sed&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;etc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;php&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;ini&lt;/span&gt;
+
+&lt;span class=&quot;no&quot;&gt;RUN&lt;/span&gt;	&lt;span class=&quot;n&quot;&gt;mkdir&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;sr&quot;&gt;/app &amp;amp;&amp;amp; echo &quot;&amp;lt;?php phpinfo(); ?&amp;gt;&quot; &amp;gt; ${APP_DIR}/in&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;php&lt;/span&gt;
+
+&lt;span class=&quot;no&quot;&gt;EXPOSE&lt;/span&gt;	&lt;span class=&quot;mi&quot;&gt;80&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;443&lt;/span&gt;
+
+&lt;span class=&quot;no&quot;&gt;ADD&lt;/span&gt;	&lt;span class=&quot;n&quot;&gt;supervisor_nginx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;conf&lt;/span&gt; &lt;span class=&quot;sr&quot;&gt;/etc/su&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pervisor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;conf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;d&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nginx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;conf&lt;/span&gt;
+&lt;span class=&quot;no&quot;&gt;ADD&lt;/span&gt;	&lt;span class=&quot;n&quot;&gt;supervisor_php&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fpm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;conf&lt;/span&gt; &lt;span class=&quot;sr&quot;&gt;/etc/su&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pervisor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;conf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;d&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;php&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fpm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;conf&lt;/span&gt;
+
+&lt;span class=&quot;no&quot;&gt;ONBUILD&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;ADD&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;
+&lt;span class=&quot;no&quot;&gt;ONBUILD&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;RUN&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;chown&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;R&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nginx&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:nginx&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;app&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;可能遇到的问题&quot;&gt;可能遇到的问题&lt;/h2&gt;
+&lt;p&gt;Error: fakesystemd conflicts with systemd-219-30.el7_3.7.x86_64 
+可以尝试的解决办法
+在centos 7 和fakesystend发生了冲突，可能是版本的问题，更新基础镜像
+$ sudo docker pull centos:lastest 
+或 $ sudo docker pull centos:7&lt;/p&gt;
+
+&lt;p&gt;我根据错误提示添加了–skip-broken 
+&lt;img src=&quot;http://i.imgur.com/oGZEolJ.png&quot; alt=&quot;&quot; /&gt;
+也可以绕过这个问题，不过在镜像和容器创建之后，进入容器之后会报如下错误：
+&lt;img src=&quot;http://i.imgur.com/gxHh2Ud.png&quot; alt=&quot;&quot; /&gt;
+然后在容器中通过 yum -y install php-fpm重新安装后php-fpm就恢复了正常
+&lt;img src=&quot;http://i.imgur.com/liJINHN.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+</description>
+        <pubDate>Fri, 31 Mar 2017 17:52:08 -0700</pubDate>
+        <link>http://localhost:5001/2017/03/31/Docker%E5%9F%BA%E7%A1%80%E6%8C%87%E4%BB%A4%E5%8F%8ADockerfile/</link>
+        <guid isPermaLink="true">http://localhost:5001/2017/03/31/Docker%E5%9F%BA%E7%A1%80%E6%8C%87%E4%BB%A4%E5%8F%8ADockerfile/</guid>
+        
+        <category>DockerFile</category>
+        
+        <category>php-fpm</category>
+        
+        <category>Centos</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>CUDA编程基础知识+示例</title>
+        <description>&lt;p&gt;一个CUDA程序一般分为两部分&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Host 运行在CPU端，逻辑判断密集型&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Device 运行在GPU端，计算密集型&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;内存分配&lt;/strong&gt;：无论是CPU端的主存还是GPU端的显存，都必须通过CUDA在主机端进行统一分配&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;CUDA编程模型：&lt;/strong&gt;
+GPU与CPU交互通过PCIE总线进行互联，CUDA的线程结构是网格-线程块-线程（是CUDA程序的最小执行单元）三级结构。
+&lt;img src=&quot;http://i.imgur.com/h43llVa.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;cuda函数声明&quot;&gt;CUDA函数声明&lt;/h2&gt;
+&lt;p&gt;Kernel函数（入口函数）在CPU上调用在GPU上执行，GPU在执行kernel函数的时候面向线程。 
+&lt;img src=&quot;http://i.imgur.com/jdGG8hl.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;CUDA中的kernel函数是一个可以在CUDA程序中被独立并行执行的一个过程。&lt;/p&gt;
+&lt;h1 id=&quot;cuda-api语法&quot;&gt;CUDA API语法&lt;/h1&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;n&quot;&gt;__global__&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Compute&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gpudata&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;调用方式&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;no&quot;&gt;Compute&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;其中«&amp;lt; »&amp;gt;是运算符，用来传递要调用的kernel函数的执行参数，m代表每个Grid中的Block数量，n代表每个Block中的Thread数量，«&amp;lt; »&amp;gt;也包含每个Block能够分配的额外shared memory大小，隐藏默认为1。   a,b是函数调用的实参。&lt;/p&gt;
+
+&lt;p&gt;每个	Grid分为N个Block，每个Block分为M个Thread，则每个线程的序号为 N*M+ThreadID.x。&lt;/p&gt;
+&lt;h1 id=&quot;索引计算方法&quot;&gt;索引计算方法&lt;/h1&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tid&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;threadIdx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;blockIdx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;blockDim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;threadIdx.x表示当前线程所在线程块中某行的索引，&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;blockIdx.x表示线程块索引，&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;blockDim.x表示每个线程块中的线程数量&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;gridDim.x表示当前线程格中线程块的数量&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;开始学习CUDA编程啦，觉得通过具体的例子来解释CUDA编程的关键点会好很多吧。这是我开始学习的第一个例子，求立方和，以下是完整的代码，具体的解释在各行中有注释，在便于我回忆的同时希望对大家会有帮助。&lt;br /&gt;
+通过以下形式启动核函数：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt; &lt;span class=&quot;n&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;param1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;param2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;  &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;可以认为运行时将创建核函数的5个副本，并以并行的方式来运行&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;c1&quot;&gt;#include &amp;lt;stdio.h&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;#include &amp;lt;assert.h&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;#define DATA_SIZE 1048576&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;DATA_SIZE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;GenerateNumbers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;number&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;srand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;number&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;rand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Simple&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;utility&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;to&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;check&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;CUDA&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;runtime&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;errors&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;checkCUDAError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Part&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;of&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;implement&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;the&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kernel&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;__global__&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;myFirstKernel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;num&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+       &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;计算位于这个索引处的数据，&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dim3&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;为二维数组，要通过&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;和&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;来对应数据位置，这样才可以给每个线程块制定运算的数据&lt;/span&gt;
+       &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;将&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;threadIdx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;BlockIdx&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;映射到像素位置&lt;/span&gt;
+       &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;threadIdx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;blockIdx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;blockDim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+       &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;threadIdx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;y&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;blockIdx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;y&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;blockDim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+       &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;blockIdx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;blockDim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;代表每一横行的线程数&lt;/span&gt;
+       &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tid&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;blockDim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gridDim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tid&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tid&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;DATA_SIZE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;num&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;num&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;num&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;    
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pointer&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;host&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;memory&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h_a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; 
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pointer&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;device&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;memory&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;GPU&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;d_a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;GPU&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;上计算结果定义并分配内存&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;cudaMalloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Part&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;of&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;allocate&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;host&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;device&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;memory&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;memSize&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;DATA_SIZE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;h_a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;malloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;memSize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cudaMalloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;第一个参数是一个指针，用于保存新分配内存地址的变量，第二个是内存大小&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;cudaMalloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;**&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;d_a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;memSize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;调用生成随机数的函数，生成随机数的位置在&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;端&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h_a&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;，在这里要注意分配内存的顺序&lt;/span&gt;
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;该函数中的参数&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h_a&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;一定要先分配内存&lt;/span&gt;
+    &lt;span class=&quot;no&quot;&gt;GenerateNumbers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h_a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;DATA_SIZE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cudaMemcpy&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;（目的，源，要拷贝的大小，方向）&lt;/span&gt;
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;将&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h_a&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;中的生成的随机数传输给&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;d_a&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;，源是&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;host&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;cudaMemcpy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;d_a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h_a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;DATA_SIZE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cudaMemcpyHostToDevice&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Part&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;of&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configure&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;launch&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kernel&lt;/span&gt;
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;通过&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dim3&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;声明一个二维格，其实是三维但是&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;CUDA&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;运行时会自动把第三维制定为&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;dim3&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dimGrid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;dim3&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dimBlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;16&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;sr&quot;&gt;//m&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;yFirstKernel&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;参数即要传给核函数的值&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;myFirstKernel&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dimGrid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dimBlock&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;d_a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;block&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;until&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;the&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;device&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;has&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;completed&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;cudaThreadSynchronize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;GPUsum: %d&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;check&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kernel&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;execution&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;generated&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;an&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;error&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;checkCUDAError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;kernel execution&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;SumResult&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Part&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;of&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;device&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;to&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;host&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;copy&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;cudaMemcpy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;SumResult&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cudaMemcpyDeviceToHost&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Check&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;any&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;CUDA&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;errors&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;checkCUDAError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;cudaMemcpy&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Part&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;of&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;verify&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;the&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;returned&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;to&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;the&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;host&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;correct&lt;/span&gt;
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;常会用到&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;assert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;断言判断计算是否正确&lt;/span&gt;
+    &lt;span class=&quot;nb&quot;&gt;printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Sum Result: %d &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;SumResult&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;free&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;device&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;memory&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;cudaFree&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;d_a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;cudaFree&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;sr&quot;&gt;//&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;free&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;host&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;memory&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;free&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;h_a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;checkCUDAError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;cudaError_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;err&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cudaGetLastError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cudaSuccess&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;fprintf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;stderr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Cuda error: %s: %s.&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;msg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cudaGetErrorString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;                         
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+</description>
+        <pubDate>Fri, 17 Mar 2017 03:53:23 -0700</pubDate>
+        <link>http://localhost:5001/cuda/2017/03/17/CUDA%E7%BC%96%E7%A8%8B%E5%85%A5%E9%97%A8/</link>
+        <guid isPermaLink="true">http://localhost:5001/cuda/2017/03/17/CUDA%E7%BC%96%E7%A8%8B%E5%85%A5%E9%97%A8/</guid>
+        
+        <category>CUDA</category>
+        
+        <category>GPU</category>
+        
+        
+        <category>CUDA</category>
+        
+      </item>
+    
+      <item>
         <title>How to use cuda-gdb debug</title>
-        <description>&lt;p&gt;开始学习cuda编程了，就会遇到好多的问题，怎么知道是哪里出问题了呢，CUDA自带的cuda-gdb就会帮到我们啦。
-首先输入&lt;code class=&quot;highlighter-rouge&quot;&gt;cuda-gdb&lt;/code&gt;就会进入这样的模式&lt;/p&gt;
+        <description>&lt;p&gt;开始学习cuda编程了，就会遇到好多的问题，怎么知道是哪里出问题了呢，CUDA自带的cuda-gdb就会帮到我们啦。NVIDA对开源的GUN调试器进行了扩展，CUDA-GDB包含以下功能：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;观察CUDA状态，例如已安装的GPU及其支持的功能&lt;/li&gt;
+  &lt;li&gt;在CUDA C中设置断点&lt;/li&gt;
+  &lt;li&gt;分享GPU中内存，包括全局内存和共享内存&lt;/li&gt;
+  &lt;li&gt;单步调试&lt;/li&gt;
+  &lt;li&gt;分析当前驻留在GPU上的线程块和线程&lt;/li&gt;
+  &lt;li&gt;设置断点调试&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;首先输入&lt;code class=&quot;highlighter-rouge&quot;&gt;cuda-gdb&lt;/code&gt;就会进入这样的模式&lt;/p&gt;
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;n&quot;&gt;server&lt;/span&gt;&lt;span class=&quot;vi&quot;&gt;@Server&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:~&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xtk&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;Exercises&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;Test1&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;$&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cuda&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gdb&lt;/span&gt;  
 &lt;span class=&quot;no&quot;&gt;NVIDIA&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;R&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;CUDA&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Debugger&lt;/span&gt;  
@@ -36,8 +707,8 @@
 &lt;span class=&quot;no&quot;&gt;Breakpoint&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;at&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x402bf2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;file&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;myFirstKernel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;cu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;line&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cuda&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gdb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;具体解释一下：
-在gdb中所有不冲突的指令都可以输入简写，即第一个首字母
+&lt;h2 id=&quot;调试方法&quot;&gt;调试方法&lt;/h2&gt;
+&lt;p&gt;在gdb中所有不冲突的指令都可以输入简写，即第一个首字母
 1.允许在图形界面模式下进行调试。
 &lt;code class=&quot;highlighter-rouge&quot;&gt;set cuda software-preemption on&lt;/code&gt;&lt;br /&gt;
 2.指定要调试的.out文件   &lt;code class=&quot;highlighter-rouge&quot;&gt;file a.out&lt;/code&gt;&lt;br /&gt;
@@ -48,14 +719,46 @@
 7.quit 退出调试&lt;/p&gt;
 
 </description>
-        <pubDate>Wed, 15 Mar 2017 14:52:08 +0800</pubDate>
-        <link>http://localhost:4000/cuda/2017/03/15/CUDA-GDB%E4%BD%BF%E7%94%A8/</link>
-        <guid isPermaLink="true">http://localhost:4000/cuda/2017/03/15/CUDA-GDB%E4%BD%BF%E7%94%A8/</guid>
+        <pubDate>Tue, 14 Mar 2017 23:52:08 -0700</pubDate>
+        <link>http://localhost:5001/cuda/2017/03/14/CUDA-GDB%E4%BD%BF%E7%94%A8/</link>
+        <guid isPermaLink="true">http://localhost:5001/cuda/2017/03/14/CUDA-GDB%E4%BD%BF%E7%94%A8/</guid>
         
         <category>Jekyll</category>
         
         
         <category>CUDA</category>
+        
+      </item>
+    
+      <item>
+        <title> Don't have jekyll-paginate  </title>
+        <description>&lt;p&gt;在执行&lt;code class=&quot;highlighter-rouge&quot;&gt;bundle exec jekyll serve&lt;/code&gt;之后会报如下错误：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Dependency Error: Yikes! It looks like you don’t have jekyll-paginate     or one of its dependencies installed. In order to use Jekyll as currently configured, you’ll need to install this gem. The full error message from Ruby is: ‘cannot load such file – jekyll-paginate’ If you run into trouble, you can find helpful resources at Getting Help
+
+jekyll 3.1.2 | Error: jekyll-paginate 我在最初使用的时候出现了这个错误。 前提是已经使用`gem install jekyll-paginate`安装了jekyll-paginate,并提示安装成功。并且使用`gem listkeyi` 查看到。 ## 解决方法## 1. 在_config.yml文件中添加如下代码
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;   
+&lt;span class=&quot;ss&quot;&gt;gems: 
+  &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jekyll&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;paginate&lt;/span&gt;
+&lt;span class=&quot;ss&quot;&gt;exclude:
+  &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Gemfile&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Gemfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;lock&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;2.编辑Gemfilewen在其中添加 
+&lt;code class=&quot;highlighter-rouge&quot;&gt;gem &quot;jekyll-paginate&quot;&lt;/code&gt;&lt;/p&gt;
+</description>
+        <pubDate>Tue, 14 Mar 2017 23:52:08 -0700</pubDate>
+        <link>http://localhost:5001/jekyll/2017/03/14/Jekyll%E4%BD%BF%E7%94%A8%E5%8F%AF%E8%83%BD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/</link>
+        <guid isPermaLink="true">http://localhost:5001/jekyll/2017/03/14/Jekyll%E4%BD%BF%E7%94%A8%E5%8F%AF%E8%83%BD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/</guid>
+        
+        <category>Jekyll problem</category>
+        
+        
+        <category>jekyll</category>
         
       </item>
     
@@ -76,14 +779,44 @@
 &lt;p&gt;Check out the &lt;a href=&quot;https://jekyllrb.com/docs/home&quot;&gt;Jekyll docs&lt;/a&gt; for more info on how to get the most out of Jekyll. File all bugs/feature requests at &lt;a href=&quot;https://github.com/jekyll/jekyll&quot;&gt;Jekyll’s GitHub repo&lt;/a&gt;. If you have questions, you can ask them on &lt;a href=&quot;https://talk.jekyllrb.com/&quot;&gt;Jekyll Talk&lt;/a&gt;.&lt;/p&gt;
 
 </description>
-        <pubDate>Wed, 15 Mar 2017 14:52:08 +0800</pubDate>
-        <link>http://localhost:4000/jekyll/2017/03/15/welcome-to-jekyll/</link>
-        <guid isPermaLink="true">http://localhost:4000/jekyll/2017/03/15/welcome-to-jekyll/</guid>
+        <pubDate>Tue, 14 Mar 2017 23:52:08 -0700</pubDate>
+        <link>http://localhost:5001/jekyll/2017/03/14/welcome-to-jekyll/</link>
+        <guid isPermaLink="true">http://localhost:5001/jekyll/2017/03/14/welcome-to-jekyll/</guid>
         
         <category>Jekyll</category>
         
         
         <category>jekyll</category>
+        
+      </item>
+    
+      <item>
+        <title>NVCC编译指令</title>
+        <description>&lt;p&gt;&lt;img src=&quot;http://i.imgur.com/52eiF8B.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+&lt;h1 id=&quot;nvcc-build-configurations&quot;&gt;NVCC Build Configurations&lt;/h1&gt;
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;nvcc &amp;lt;filename&amp;gt;.cu [-o &amp;lt;executable&amp;gt;]&lt;/code&gt;&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Builds release mode&lt;br /&gt;
+&lt;code class=&quot;highlighter-rouge&quot;&gt;nvcc -g &amp;lt;filename&amp;gt;.cu  &lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;Build debug mode&lt;/li&gt;
+  &lt;li&gt;can debug host code but not device code&lt;br /&gt;
+` nvcc -deviceemu &lt;filename&gt;.cu`&lt;/filename&gt;&lt;/li&gt;
+  &lt;li&gt;Builds device emulation mode&lt;/li&gt;
+  &lt;li&gt;All code runs on CPU, no debug symbols&lt;br /&gt;
+` nvcc -deviceemu -g &lt;filename&gt;.cu`&lt;/filename&gt;&lt;/li&gt;
+  &lt;li&gt;Builds debug device emulation mode&lt;/li&gt;
+  &lt;li&gt;All code runs on CPU,with debug symbols&lt;/li&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Tue, 14 Mar 2017 00:00:00 -0700</pubDate>
+        <link>http://localhost:5001/2017/03/14/%E7%BC%96%E8%AF%91%E6%8C%87%E4%BB%A4NVCC%E6%8C%87%E4%BB%A4/</link>
+        <guid isPermaLink="true">http://localhost:5001/2017/03/14/%E7%BC%96%E8%AF%91%E6%8C%87%E4%BB%A4NVCC%E6%8C%87%E4%BB%A4/</guid>
+        
+        <category>NVCC</category>
+        
+        <category>debug</category>
+        
         
       </item>
     
@@ -144,140 +877,16 @@
 
 &lt;p&gt;是不是已经看到自己的博客了呢。&lt;/p&gt;
 </description>
-        <pubDate>Wed, 15 Mar 2017 14:52:08 +0800</pubDate>
-        <link>http://localhost:4000/jekyll/2017/03/15/Jekyll%E5%AE%89%E8%A3%85/</link>
-        <guid isPermaLink="true">http://localhost:4000/jekyll/2017/03/15/Jekyll%E5%AE%89%E8%A3%85/</guid>
+        <pubDate>Sun, 12 Mar 2017 17:52:08 -0700</pubDate>
+        <link>http://localhost:5001/jekyll/2017/03/12/Jekyll%E5%AE%89%E8%A3%85/</link>
+        <guid isPermaLink="true">http://localhost:5001/jekyll/2017/03/12/Jekyll%E5%AE%89%E8%A3%85/</guid>
         
         <category>Jekyll</category>
         
-        
-        <category>jekyll</category>
-        
-      </item>
-    
-      <item>
-        <title> Don't have jekyll-paginate  </title>
-        <description>&lt;p&gt;在执行&lt;code class=&quot;highlighter-rouge&quot;&gt;bundle exec jekyll serve&lt;/code&gt;之后会报如下错误：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Dependency Error: Yikes! It looks like you don’t have jekyll-paginate     or one of its dependencies installed. In order to use Jekyll as currently configured, you’ll need to install this gem. The full error message from Ruby is: ‘cannot load such file – jekyll-paginate’ If you run into trouble, you can find helpful resources at Getting Help
-
-jekyll 3.1.2 | Error: jekyll-paginate 我在最初使用的时候出现了这个错误。 前提是已经使用`gem install jekyll-paginate`安装了jekyll-paginate,并提示安装成功。并且使用`gem listkeyi` 查看到。 ## 解决方法## 1. 在_config.yml文件中添加如下代码
-&lt;/code&gt;&lt;/pre&gt;
-&lt;/div&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;   
-&lt;span class=&quot;ss&quot;&gt;gems: 
-  &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jekyll&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;paginate&lt;/span&gt;
-&lt;span class=&quot;ss&quot;&gt;exclude:
-  &lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Gemfile&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Gemfile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;lock&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;2.编辑Gemfilewen在其中添加 
-&lt;code class=&quot;highlighter-rouge&quot;&gt;gem &quot;jekyll-paginate&quot;&lt;/code&gt;&lt;/p&gt;
-</description>
-        <pubDate>Wed, 15 Mar 2017 14:52:08 +0800</pubDate>
-        <link>http://localhost:4000/jekyll/2017/03/15/Jekyll%E4%BD%BF%E7%94%A8%E5%8F%AF%E8%83%BD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/</link>
-        <guid isPermaLink="true">http://localhost:4000/jekyll/2017/03/15/Jekyll%E4%BD%BF%E7%94%A8%E5%8F%AF%E8%83%BD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/</guid>
-        
-        <category>Jekyll problem</category>
+        <category>Blog</category>
         
         
         <category>jekyll</category>
-        
-      </item>
-    
-      <item>
-        <title>NVCC编译指令</title>
-        <description>&lt;p&gt;&lt;img src=&quot;http://i.imgur.com/52eiF8B.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-&lt;h1 id=&quot;nvcc-build-configurations&quot;&gt;NVCC Build Configurations&lt;/h1&gt;
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;nvcc &amp;lt;filename&amp;gt;.cu [-o &amp;lt;executable&amp;gt;]&lt;/code&gt;&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;Builds release mode&lt;br /&gt;
-&lt;code class=&quot;highlighter-rouge&quot;&gt;nvcc -g &amp;lt;filename&amp;gt;.cu  &lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;Build debug mode&lt;/li&gt;
-  &lt;li&gt;can debug host code but not device code&lt;br /&gt;
-` nvcc -deviceemu &lt;filename&gt;.cu`&lt;/filename&gt;&lt;/li&gt;
-  &lt;li&gt;Builds device emulation mode&lt;/li&gt;
-  &lt;li&gt;All code runs on CPU, no debug symbols&lt;br /&gt;
-` nvcc -deviceemu -g &lt;filename&gt;.cu`&lt;/filename&gt;&lt;/li&gt;
-  &lt;li&gt;Builds debug device emulation mode&lt;/li&gt;
-  &lt;li&gt;All code runs on CPU,with debug symbols&lt;/li&gt;
-&lt;/ul&gt;
-
-</description>
-        <pubDate>Tue, 14 Mar 2017 00:00:00 +0800</pubDate>
-        <link>http://localhost:4000/2017/03/14/%E7%BC%96%E8%AF%91%E6%8C%87%E4%BB%A4NVCC%E6%8C%87%E4%BB%A4/</link>
-        <guid isPermaLink="true">http://localhost:4000/2017/03/14/%E7%BC%96%E8%AF%91%E6%8C%87%E4%BB%A4NVCC%E6%8C%87%E4%BB%A4/</guid>
-        
-        <category>NVCC</category>
-        
-        <category>debug</category>
-        
-        
-      </item>
-    
-      <item>
-        <title>CUDA开发环境配置</title>
-        <description>&lt;p&gt;我偏好使用Ubuntu,那么首先来查看一下所使用的版本 &lt;br /&gt;
-    &lt;code class=&quot;highlighter-rouge&quot;&gt;$ cat /etc/issue   &lt;/code&gt;&lt;br /&gt;
-然后我们来了解一下所使用的GPU版本和对nvidia的支持   &lt;br /&gt;
-   ` $lspci | grep -i nvidia   ` 
-&lt;img src=&quot;http://i.imgur.com/LJlRuY6.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
-之后查看gcc的支持&lt;br /&gt;
-&lt;img src=&quot;http://i.imgur.com/CMa3poc.png&quot; alt=&quot;&quot; /&gt;
-&lt;img src=&quot;http://i.imgur.com/GOr87ja.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
-  可以看到gcc的版本是5.4.0。  之后开始下载CUDA Toolkit，其中下载链接为&lt;a href=&quot;https://developer.nvidia.com/cuda-downloads&quot; title=&quot;CUDA toolkit下载链接&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;https://developer.nvidia.com/cuda-downloads&lt;/code&gt;&lt;/a&gt;&lt;br /&gt;
-安装所需的支持库&lt;br /&gt;
-&lt;img src=&quot;http://i.imgur.com/OC32tZ6.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
-按照相应的系统支持的版本进行下载&lt;br /&gt;
-&lt;img src=&quot;http://i.imgur.com/3oo0wnN.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
-之后就可以把下载好的.run文件放在合适的目录，准备进行安装和环境配置。 首先在进行实际的软件开发之前，要安装一些必要的支持库&lt;br /&gt;
-&lt;img src=&quot;http://i.imgur.com/1QYelb5.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
-卸载在这台机器上之前装过的其他版本的NVIDIA的驱动  &lt;br /&gt;
-$ sudo nvidia-uninstall&lt;br /&gt;
-&lt;img src=&quot;http://i.imgur.com/Y8u8nCk.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
-同时也清除原来的nvidia支持库&lt;br /&gt;
-屏蔽nouveau的库&lt;br /&gt;
-   ` $ cd /etc/modprobe.d/  `
-找到 nvidia-installer-disable-nouveau.conf里面&lt;br /&gt;
-   ` blacklist nouveau  `
-   ` options nouveau modeset=0    `
-通过这两句话 nvidia的安装包会主动把nouveau的驱动库屏蔽掉，之后重启系统
-运行.run文件 
-&lt;img src=&quot;http://i.imgur.com/DNCc3nR.png&quot; alt=&quot;&quot; /&gt;
-&lt;code class=&quot;highlighter-rouge&quot;&gt;$sudo sh cuda_8.0.61_375.26_linux.run &lt;/code&gt; &lt;br /&gt;
-Enter Toolkit Location&lt;br /&gt;
- [ default is /usr/local/cuda-8.0 ]:&lt;br /&gt;
-Enter CUDA Samples Location&lt;br /&gt;
- [ default is /home/dutoeserver ]:         &lt;br /&gt;
-可以看到提示信息，要修改PATH和LD_LIBRARY_PATH    &lt;br /&gt;
-    &lt;code class=&quot;highlighter-rouge&quot;&gt;PATH includes /usr/local/cuda-8.0/bin&lt;/code&gt;
-    ` -   LD_LIBRARY_PATH includes /usr/local/cuda-8.0/lib64, or, add /usr/local/cuda-8.0/lib64 to /etc/ld.so.conf and run ldconfig as root&lt;code class=&quot;highlighter-rouge&quot;&gt;
-回到根目录下 vim .bashrc   依照下图制定路径后 &lt;/code&gt;source .bashrc` 使新配置生效&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;http://i.imgur.com/VWk1iLl.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;之后通过nvcc –version指令可以看到，我们配置的是Cuda compilation tools, release 8.0, V8.0.61&lt;br /&gt;
-&lt;strong&gt;至此，我们就完成了CUDA的编译环境和SDK的安装，是不是好棒棒！&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;现在，我们就可以看到NVIDIA_CUDA-8.0_Samples，文件夹里面就是NVIDIA提供的在不同应用领域的官方示例，我们可以通过阅读官方示例的代码来进行学习个提高。 同时也可以使用官方示例来验证我们的环境配置是否正确。
-&lt;img src=&quot;http://i.imgur.com/HgO3JWT.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
-make一下会看到nvcc的工具正在编译包里面的示例           &lt;br /&gt;
-&lt;img src=&quot;http://i.imgur.com/LT3bKXX.png&quot; alt=&quot;&quot; /&gt;&lt;br /&gt;
-测试一下CUDA运行&lt;br /&gt;
-&lt;img src=&quot;http://i.imgur.com/YScQ2hn.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
-</description>
-        <pubDate>Mon, 06 Mar 2017 14:52:08 +0800</pubDate>
-        <link>http://localhost:4000/2017/03/06/CUDA%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/</link>
-        <guid isPermaLink="true">http://localhost:4000/2017/03/06/CUDA%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/</guid>
-        
-        <category>CUDA</category>
-        
-        <category>GPU</category>
-        
-        <category>环境配置</category>
-        
         
       </item>
     

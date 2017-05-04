@@ -7,10 +7,10 @@
     <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="每个胜利背后都有许多尝试">
-    <meta name="keywords"  content="WEB, CDUA, 大数据, PHP">
+    <meta name="keywords"  content="">
     <meta name="theme-color" content="#000000">
     
-    <title>Let's install Jekyll! - 阿坤的博客 | KUN Blog</title>
+    <title>Welcome to Jekyll! - 阿坤的博客 | KUN Blog</title>
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="/pwa/manifest.json">
@@ -19,7 +19,7 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="http://localhost:4000/jekyll/2017/03/15/Jekyll%E5%AE%89%E8%A3%85/">
+    <link rel="canonical" href="http://localhost:5001/jekyll/2017/03/14/welcome-to-jekyll/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -69,7 +69,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="/">Bien</a>
+            <a class="navbar-brand" href="/">Memory</a>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
@@ -173,12 +173,12 @@
                         <a class="tag" href="/tags/#Jekyll" title="Jekyll">Jekyll</a>
                         
                     </div>
-                    <h1>Let's install Jekyll!</h1>
+                    <h1>Welcome to Jekyll!</h1>
                     
                     
                     <h2 class="subheading"></h2>
                     
-                    <span class="meta">Posted by Bien on March 15, 2017</span>
+                    <span class="meta">Posted by Memory on March 14, 2017</span>
                 </div>
             </div>
         </div>
@@ -196,60 +196,20 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-				<p>Jeekyll可以快速的将一个平文本文件转换成静态的网页或博客，只需要大概十五分钟的时间，我们就可以有一个自己的博客啦，默认的样式也很简洁大方吧。
-<img src="http://i.imgur.com/yfviaFk.png" alt="" /> <br />
-那么我开始安装Jekyll吧</p>
-<h2 id="1ruby安装">1.Ruby安装</h2>
-<p>下载地址  [Ruby-Install-Download]: http://rubyinstaller.org/downloads/</p>
+				<p>You’ll find this post in your <code class="highlighter-rouge">_posts</code> directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run <code class="highlighter-rouge">jekyll serve</code>, which launches a web server and auto-regenerates your site when a file is updated.</p>
 
-<p><img src="http://i.imgur.com/uRu8xXz.png" alt="" /><br />
-选择适合自己电脑的版本进行下载就好啦，我选的是最新的版本Ruby 2.3.3(x64) 记得安装的时候要钩上“<strong>Add Ruby executables to your PATH”</strong>选项，这样就会自动的添加环境变量咯。
-装好之后尝试输入ruby -v 应该可以显示对应的版本信息。</p>
-<h2 id="2devkit安装">2.DevKit安装</h2>
-<p>还是再刚才的页面，往下翻就可以看到Devkit的下载啦，要注意下载的DevKit版本要和ruby版本对应，之前咱们下过的版本是高于2.0的所以下最后一个就好了。
-<img src="http://i.imgur.com/fjs9QwT.png" alt="" /></p>
+<p>To add new posts, simply add a file in the <code class="highlighter-rouge">_posts</code> directory that follows the convention <code class="highlighter-rouge">YYYY-MM-DD-name-of-post.ext</code> and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.</p>
 
-<p>下载完成后，点击exe进行安装，在所选择的安装目录下输入如下指令：</p>
-<ul>
-  <li>ruby dk.rb init</li>
-  <li>ruby dk.rb install
-    <h2 id="3-jekyll安装">3. Jekyll安装</h2>
-  </li>
-</ul>
+<p>Jekyll also offers powerful support for code snippets:</p>
 
-<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby">    
-<span class="sr">//</span><span class="err">因为默认的下载源很有可能被禁止了，所以要更换</span><span class="n">gem</span><span class="err">源</span>
-<span class="n">gem</span> <span class="n">sources</span> <span class="o">--</span><span class="n">remove</span> <span class="n">https</span><span class="ss">:/</span><span class="o">/</span><span class="n">rubygems</span><span class="p">.</span><span class="nf">org</span><span class="o">/</span>
-<span class="n">gem</span> <span class="n">sources</span> <span class="o">-</span><span class="n">a</span> <span class="n">https</span><span class="ss">:/</span><span class="o">/</span><span class="n">ruby</span><span class="p">.</span><span class="nf">taobao</span><span class="p">.</span><span class="nf">org</span><span class="o">/</span>
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">def</span> <span class="nf">print_hi</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
+  <span class="nb">puts</span> <span class="s2">"Hi, </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">end</span>
+<span class="n">print_hi</span><span class="p">(</span><span class="s1">'Tom'</span><span class="p">)</span>
+<span class="c1">#=&gt; prints 'Hi, Tom' to STDOUT.</span></code></pre></figure>
 
-<span class="sr">//</span><span class="err">查看</span><span class="n">gem</span><span class="err">源是否更新成功</span>
-<span class="n">gem</span> <span class="n">sources</span> <span class="o">-</span><span class="n">l</span>
+<p>Check out the <a href="https://jekyllrb.com/docs/home">Jekyll docs</a> for more info on how to get the most out of Jekyll. File all bugs/feature requests at <a href="https://github.com/jekyll/jekyll">Jekyll’s GitHub repo</a>. If you have questions, you can ask them on <a href="https://talk.jekyllrb.com/">Jekyll Talk</a>.</p>
 
-<span class="sr">//</span><span class="err">更新</span><span class="n">gem</span>
-<span class="n">gem</span> <span class="n">update</span> <span class="o">--</span><span class="nb">system</span>
-
-<span class="sr">//</span><span class="err">安装</span><span class="n">jekyll</span>
-<span class="n">gem</span> <span class="n">install</span> <span class="n">jekyll</span>  </code></pre></figure>
-
-<h2 id="4安装python的相关环境">4.安装Python的相关环境</h2>
-
-<p>在此就不再赘述Python啦，网上有好多教程。
-要记得装[Easy Install]和[Pygments]</p>
-<h2 id="5jekyll的启动">5.Jekyll的启动</h2>
-<p>终于要看到效果啦，</p>
-
-<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby">      
-<span class="n">gem</span> <span class="n">install</span> <span class="n">jekyll</span> <span class="n">bundler</span>
-
-<span class="n">jekyll</span> <span class="kp">new</span> <span class="n">my</span><span class="o">-</span><span class="n">awesome</span><span class="o">-</span><span class="n">site</span>
-
-<span class="n">cd</span> <span class="n">my</span><span class="o">-</span><span class="n">awesome</span><span class="o">-</span><span class="n">site</span>
-
-<span class="n">bundle</span> <span class="nb">exec</span> <span class="n">jekyll</span> <span class="n">serve</span>
-
-<span class="c1"># =&gt; Now browse to http://localhost:4000 </span></code></pre></figure>
-
-<p>是不是已经看到自己的博客了呢。</p>
 
 
                 <hr style="visibility: hidden;">
@@ -260,17 +220,17 @@
                 <ul class="pager">
                     
                     <li class="previous">
-                        <a href="/jekyll/2017/03/15/Jekyll%E4%BD%BF%E7%94%A8%E5%8F%AF%E8%83%BD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" data-toggle="tooltip" data-placement="top" title=" Don't have jekyll-paginate  ">
+                        <a href="/2017/03/14/%E7%BC%96%E8%AF%91%E6%8C%87%E4%BB%A4NVCC%E6%8C%87%E4%BB%A4/" data-toggle="tooltip" data-placement="top" title="NVCC编译指令">
                         Previous<br>
-                        <span> Don't have jekyll-paginate  </span>
+                        <span>NVCC编译指令</span>
                         </a>
                     </li>
                     
                     
                     <li class="next">
-                        <a href="/jekyll/2017/03/15/welcome-to-jekyll/" data-toggle="tooltip" data-placement="top" title="Welcome to Jekyll!">
+                        <a href="/jekyll/2017/03/14/Jekyll%E4%BD%BF%E7%94%A8%E5%8F%AF%E8%83%BD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" data-toggle="tooltip" data-placement="top" title=" Don't have jekyll-paginate  ">
                         Next<br>
-                        <span>Welcome to Jekyll!</span>
+                        <span> Don't have jekyll-paginate  </span>
                         </a>
                     </li>
                     
@@ -291,31 +251,6 @@
                 col-lg-8 col-lg-offset-2
                 col-md-10 col-md-offset-1
                 sidebar-container">
-
-                <!-- Featured Tags -->
-                
-                <section>
-                    <hr class="hidden-sm hidden-xs">
-                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
-                    <div class="tags">
-        				
-                            
-        				
-                            
-        				
-                            
-        				
-                            
-        				
-                            
-        				
-                            
-        				
-                            
-        				
-        			</div>
-                </section>
-                
 
                 <!-- Friends Blog -->
                 
@@ -380,33 +315,15 @@
 
                     <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
                     
-                    <li>
-                        <a target="_blank" href="https://www.zhihu.com/people/xu-di-86-67">
-                            <span class="fa-stack fa-lg">
-                                <i class="fa fa-circle fa-stack-2x"></i>
-                                <i class="fa  fa-stack-1x fa-inverse">知</i>
-                            </span>
-                        </a>
-                    </li>
-                    
                     
 
 
                     
-                    
-                    <li>
-                        <a target="_blank" href="https://github.com/superkunkunkun">
-                            <span class="fa-stack fa-lg">
-                                <i class="fa fa-circle fa-stack-2x"></i>
-                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
-                            </span>
-                        </a>
-                    </li>
                     
                     
                 </ul>
                 <p class="copyright text-muted">
-                    Copyright &copy; Bien 2017
+                    Copyright &copy; Memory 2017
                     <br>
                     Theme by <a href="http://huangxuan.me">Hux</a> |
                     <iframe
@@ -499,21 +416,6 @@
 
 
 <!-- Google Analytics -->
-
-<script>
-    // dynamic User by Hux
-    var _gaId = 'UA-90855596-1';
-    var _gaDomain = 'auto';
-
-    // Originial
-    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-    ga('create', _gaId, _gaDomain);
-    ga('send', 'pageview');
-</script>
 
 
 
