@@ -10,7 +10,8 @@ tags:
 ## 问题1 ##
 在执行`bundle exec jekyll serve`之后会报如下错误：
 
-    Dependency Error: Yikes! It looks like you don’t have jekyll-paginate     or one of its dependencies installed. In order to use Jekyll as currently configured, you’ll need to install this gem. The full error message from Ruby is: ‘cannot load such file – jekyll-paginate’ If you run into trouble, you can find helpful resources at Getting Help
+    Dependency Error: Yikes! It looks like you don’t have jekyll-paginate    
+    or one of its dependencies installed. In order to use Jekyll as currently configured, you’ll need to install this gem. The full error message from Ruby is: ‘cannot load such file – jekyll-paginate’ If you run into trouble, you can find helpful resources at Getting Help
 
     jekyll 3.1.2 | Error: jekyll-paginate
 我在最初使用的时候出现了这个错误。
