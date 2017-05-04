@@ -6,6 +6,8 @@ categories: jekyll
 tags:
     - Jekyll problem
 ---
+
+## 问题1 ##
 在执行`bundle exec jekyll serve`之后会报如下错误：
 
     Dependency Error: Yikes! It looks like you don’t have jekyll-paginate     or one of its dependencies installed. In order to use Jekyll as currently configured, you’ll need to install this gem. The full error message from Ruby is: ‘cannot load such file – jekyll-paginate’ If you run into trouble, you can find helpful resources at Getting Help
@@ -21,7 +23,20 @@ gems:
 exclude:
   - Gemfile
   - Gemfile.lock
-  - {% endhighlight %}
+ {% endhighlight %}
 
 2.编辑Gemfilewen在其中添加 
 `gem "jekyll-paginate"`
+
+## 问题2 ##
+在执行`bundle exec jekyll serve`之后会报如下错误：   
+{% highlight ruby %}   
+      Please add the following to your Gemfile to avoid polling for changes: 
+    gem 'wdm', '>= 0.1.0' if Gem.win_platform?
+     Auto-regeneration: enabled for 'C:/Users/Tongkun XU/SuperKunkunkun.github.io'
+    Configuration file: C:/Users/Tongkun XU/SuperKunkunkun.github.io/_config.yml
+    jekyll 3.4.2 | Error:  Permission denied - bind(2) for 127.0.0.1:4000
+{% endhighlight %}   
+原因：Jekyll的默认端口是4000肯能被代理等其它软件占用   
+解决方法：    
+编辑_config.yml文件，添加`port: 5001` 找一个不占用的端口号替换即可
