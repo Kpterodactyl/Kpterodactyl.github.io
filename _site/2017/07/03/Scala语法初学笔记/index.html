@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="每个胜利背后都有许多尝试">
+    <meta name="keywords"  content="">
+    <meta name="theme-color" content="#000000">
+    
+    <title>Scala语法初学笔记 - 阿坤的博客 | KUN Blog</title>
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/pwa/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://localhost:5001/2017/07/03/Scala%E8%AF%AD%E6%B3%95%E5%88%9D%E5%AD%A6%E7%AC%94%E8%AE%B0/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Pygments Github CSS -->
+    <link rel="stylesheet" href="/css/syntax.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Memory</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+                    
+                    <li>
+                        <a href="/about/">About</a>
+                    </li>
+                    
+                    <li>
+                        <a href="/tags/">Tags</a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.png" width="0" height="0"> -->
+<!-- <img src="/img/post-bg-js-module.jpg" width="0" height="0"> -->
+
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/post-bg-js-module.jpg')
+    }
+
+    
+</style>
+<header class="intro-header" >
+    <div class="header-mask"></div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/#Scala" title="Scala">Scala</a>
+                        
+                        <a class="tag" href="/tags/#Spark" title="Spark">Spark</a>
+                        
+                    </div>
+                    <h1>Scala语法初学笔记</h1>
+                    
+                    
+                    <h2 class="subheading">基础+Map+Tuple+数组操作</h2>
+                    
+                    <span class="meta">Posted by Memory on July 3, 2017</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+				<p>记录一下自己开始学习Scala的基础语法，以后便于自己查阅。</p>
+<h2 id="基础部分">基础部分</h2>
+
+<p>变量声明 var n = 9   <br />
+输入 line = readLine() <br />
+<strong>do…while()</strong> 循环示例：</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby">	  <span class="n">var</span> <span class="n">line</span> <span class="o">=</span> <span class="s2">""</span>
+	  <span class="k">do</span> <span class="p">{</span>
+	    <span class="n">println</span><span class="p">(</span><span class="s2">"Please input some words blow......"</span><span class="p">)</span>
+	    <span class="n">line</span> <span class="o">=</span> <span class="n">readLine</span><span class="p">()</span>
+	    <span class="n">println</span><span class="p">(</span><span class="s2">"Read: "</span> <span class="o">+</span> <span class="n">line</span><span class="p">)</span>
+	  <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="n">line</span> <span class="o">!=</span> <span class="s2">""</span><span class="p">)</span></code></pre></figure>
+
+<p><strong>def doWhile()</strong> 函数定义</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">def</span> <span class="nf">doWhile</span><span class="p">(){</span>
+    <span class="n">var</span> <span class="n">line</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="k">do</span> <span class="p">{</span>
+       <span class="n">line</span> <span class="o">=</span> <span class="n">readLine</span><span class="p">()</span>
+       <span class="n">println</span><span class="p">(</span><span class="s2">"Read: "</span> <span class="o">+</span> <span class="n">line</span><span class="p">)</span>
+	  <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="n">line</span> <span class="o">!=</span> <span class="s2">""</span><span class="p">)</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>**if表达式   **</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">val</span> <span class="n">spark</span> <span class="o">=</span> <span class="mi">7</span>
+<span class="k">if</span><span class="p">(</span><span class="n">spark</span><span class="o">&gt;=</span><span class="mi">5</span><span class="p">)</span> <span class="s2">"adult"</span> <span class="k">else</span> <span class="s2">"child"</span></code></pre></figure>
+
+<p>结果 String = adult
+在Scala中的if表达式是有值的，但Java中是没有的。      <br />
+<strong>Scala中object的理解</strong>：  <br />
+object作为Scala中的一个关键字，相当于Java中的public static class这样的一个修饰符，也就是说object中的成员都是静态的，事实上object是Scala中的静态类，不是对象。object中的内容class都可以在没有实例的时候直接去调用。object中的apply方法是class对象生成的工厂方法，用于控制对象的生成；</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">object</span> <span class="no">HelloOOP</span> <span class="p">{</span>
+  <span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">arg</span><span class="ss">:Array</span><span class="p">[</span><span class="no">String</span><span class="p">])</span> <span class="ss">:Unit</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">val</span> <span class="no">HelloOOP</span> <span class="o">=</span> <span class="no">HelloOOP</span><span class="p">()</span>
+    <span class="no">HelloOOP</span><span class="p">.</span><span class="nf">sayHello</span>
+  <span class="p">}</span>
+  <span class="k">def</span> <span class="nf">apply</span><span class="p">()</span><span class="ss">:HelloOOP</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="kp">new</span> <span class="no">HelloOOP</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>变量声明为<strong>lazy</strong>：       <br />
+表示这个变量只有在第一次使用时，才会发生计算，比如说打开文件，打开数据库，操作网络</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">object</span> <span class="no">LazyOps</span> <span class="p">{</span>
+
+  <span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="ss">args: </span><span class="no">Array</span><span class="p">[</span><span class="no">String</span><span class="p">]):</span> <span class="no">Unit</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">lazy</span> <span class="n">val</span> <span class="n">file</span> <span class="o">=</span> <span class="no">Source</span><span class="p">.</span><span class="nf">fromFile</span><span class="p">(</span><span class="s2">"E:</span><span class="se">\\</span><span class="s2">SparkWangJialin.txt"</span><span class="p">)</span> 
+    
+    <span class="n">println</span><span class="p">(</span><span class="s2">"Scala"</span><span class="p">)</span>
+	<span class="k">for</span> <span class="p">(</span><span class="n">line</span> <span class="o">&lt;-</span> <span class="n">file</span><span class="p">.</span><span class="nf">getLines</span><span class="p">)</span> <span class="n">println</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>    
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p><strong>try…catch…finally</strong>的使用
+首先尝试完成try中的操作 ，RuntimeException中定义要错误的提示语，在catch中可以用e.getMessage()接收RuntimeException的内容。</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby">    <span class="n">val</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">99</span>
+    <span class="n">try</span> <span class="p">{</span>
+	    <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="n">n</span> <span class="sr">/2 else throw 
+	    	new RuntimeException("N must be event")
+	    /</span><span class="o">/</span> <span class="no">Use</span> <span class="n">the</span> <span class="n">file</span> 
+    <span class="p">}</span><span class="kp">catch</span> <span class="p">{</span>
+      <span class="k">case</span> <span class="n">e</span> <span class="p">:</span> <span class="no">Exception</span> <span class="o">=&gt;</span> <span class="n">println</span><span class="p">(</span><span class="s2">"The exception is :"</span> <span class="o">+</span> <span class="n">e</span><span class="p">.</span><span class="nf">getMessage</span><span class="p">())</span>
+    <span class="p">}</span><span class="n">finally</span><span class="p">{</span>
+    	<span class="n">println</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="p">}</span></code></pre></figure>
+
+<p>程序运行结果 The exception is:N must be double     <br />
+            99
+<strong>for循环</strong></p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby">	<span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;-</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">10</span><span class="p">)</span> <span class="p">{</span>
+	   <span class="n">println</span><span class="p">(</span><span class="s2">"Number is :"</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span>
+    <span class="p">}</span></code></pre></figure>
+
+<p><strong>数组 **    定长数组(Array) 变长数组(Arraybuffer)    <br />
+**不可变数组</strong>声明  <code class="highlighter-rouge">var z = new Array[Int](3)</code>      <br />
+创建不可变数组 <code class="highlighter-rouge">val arr1 = Array(1,3,5)</code>    <br />
+访问数组元素的值 <code class="highlighter-rouge">arr1(2)</code> //访问数组元素第三个值  <br />
+修改数组元素的值 <code class="highlighter-rouge">arr1(2) = 8</code> <br />
+数组遍历</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">var</span> <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span>
+<span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;-</span><span class="mi">0</span> <span class="n">to</span> <span class="p">(</span><span class="n">arr1</span><span class="p">.</span><span class="nf">length</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="p">{</span>
+	<span class="n">total</span> <span class="o">+=</span> <span class="n">arr1</span> <span class="sr">//</span><span class="err">计算总和</span>
+<span class="p">}</span>
+<span class="n">var</span> <span class="n">max</span> <span class="o">=</span> <span class="n">arr1</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="k">for</span><span class="p">(</span><span class="n">i</span> <span class="o">&lt;-</span> <span class="mi">1</span> <span class="n">to</span> <span class="p">(</span><span class="n">arr1</span><span class="p">.</span><span class="nf">length</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">arr1</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max</span><span class="err">）</span> <span class="n">max</span> <span class="o">=</span><span class="n">arr1</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+<span class="p">}</span></code></pre></figure>
+
+<p><strong>创建可变数组</strong> –可对数组元素增添或删减元素   <br />
+首先导入包  import scala.collection.mutable.ArrayBuffer</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby">    <span class="n">val</span> <span class="n">b</span> <span class="o">=</span> <span class="no">ArrayBuffer</span><span class="p">[</span><span class="no">Int</span><span class="p">]()</span>
+    <span class="n">b</span> <span class="o">+=</span> <span class="mi">1</span> <span class="o">/</span><span class="sr">/追加元素  内容为1 
+    b += (1, 2, 3, 5)   /</span><span class="o">/</span><span class="err">内容为</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">++=</span> <span class="no">Array</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">21</span><span class="p">)</span> <span class="o">/</span><span class="sr">/在现有的b的后面追加8, 13, 21 三个元素 （1, 1, 2, 3, 5, 8, 13, 21)
+    b.trimEnd(5) /</span><span class="o">/</span><span class="err">删除</span><span class="n">b</span><span class="err">后面的</span><span class="mi">5</span><span class="err">个元素</span> <span class="err">结果为</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">b</span><span class="p">.</span><span class="nf">insert</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="o">/</span><span class="sr">/下标为2元素增加元素6，后面的元素后移 结果为 (1, 1, 6, 2)
+    b.insert(2, 7, 8, 9) 在下标为2元素位置插入(7,8,9)结果为 (1, 1, 7, 8, 9, 6, 2)
+    b.remove(2) /</span><span class="o">/</span><span class="err">删除下标为</span><span class="mi">2</span><span class="err">元素</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">b</span><span class="p">.</span><span class="nf">remove</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">/</span><span class="sr">/删除下标为2元素开始的三个元素，包括下标为2元素 (1, 1, 2）
+    b.toArray</span></code></pre></figure>
+
+<p>数组求和：<code class="highlighter-rouge">arrBuffer.sum</code>  <br />
+数组求最大值：<code class="highlighter-rouge">arrBuffer.max</code>  <br />
+数组排序：<code class="highlighter-rouge">scala.util.Sorting.quickSort(arrBuffer)</code></p>
+
+<h2 id="map和tuple">Map和Tuple</h2>
+
+<p><strong>1. Map</strong> <br />
+<code class="highlighter-rouge">val map = Map("book"-&gt;10,"gun"-&gt;18,"ipad"-&gt;1000)</code>    <br />
+默认情况下Map构造的是不可变集合，里面的内容不可修改，若要修改器内容，应：    <br />
+<code class="highlighter-rouge">val scores = scala.collection.mutable.Map("Scala" -&gt; 7, "Hadoop" -&gt; 8, "Spark" -&gt; 10 )</code>  <br />
+此时为可修改的  <br />
+<code class="highlighter-rouge">scores（"Spark"-&gt;15)</code>   <br />
+Map中if…elae的变形     <br />
+<code class="highlighter-rouge">val hadoopScore = scores.getOrElse("Hadoop", 0)</code>   <br />
+表示如果这个scores中有Hadoop则取出它的值，如果没有，值就为0。 整体实例如下</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby">  <span class="sr">//</span><span class="err">不可变集合</span>
+  <span class="n">val</span> <span class="n">map</span> <span class="o">=</span> <span class="no">Map</span><span class="p">(</span><span class="s2">"book"</span><span class="o">-&gt;</span><span class="mi">10</span><span class="p">,</span><span class="s2">"gun"</span><span class="o">-&gt;</span><span class="mi">18</span><span class="p">,</span><span class="s2">"ipad"</span><span class="o">-&gt;</span><span class="mi">1000</span><span class="p">)</span>  
+  <span class="k">for</span><span class="p">((</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="o">&lt;-</span> <span class="n">map</span><span class="p">)</span> <span class="k">yield</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="o">*</span> <span class="mi">0</span><span class="o">.</span><span class="mi">9</span><span class="p">)</span>
+  <span class="sr">//</span><span class="err">可变集合</span>
+  <span class="n">val</span> <span class="n">scores</span> <span class="o">=</span> <span class="n">scala</span><span class="p">.</span><span class="nf">collection</span><span class="p">.</span><span class="nf">mutable</span><span class="o">.</span><span class="no">Map</span><span class="p">(</span><span class="s2">"Scala"</span> <span class="o">-&gt;</span> <span class="mi">7</span><span class="p">,</span> <span class="s2">"Hadoop"</span> <span class="o">-&gt;</span> <span class="mi">8</span><span class="p">,</span> <span class="s2">"Spark"</span> <span class="o">-&gt;</span> <span class="mi">10</span> <span class="p">)</span>
+  <span class="n">val</span> <span class="n">hadoopScore</span> <span class="o">=</span> <span class="n">scores</span><span class="p">.</span><span class="nf">getOrElse</span><span class="p">(</span><span class="s2">"Hadoop"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+  <span class="n">scores</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">"R"</span> <span class="o">-&gt;</span> <span class="mi">9</span><span class="p">)</span>
+  <span class="n">scores</span> <span class="o">-=</span> <span class="s2">"Hadoop"</span></code></pre></figure>
+
+<p>map()是将函数用于RDD中的每个元素，将返回值构成新的RDD。 原RDD中的元素经map处理后只能生成一个元素<br />
+flatmap()是将函数应用于RDD中的每个元素，将返回的迭代器的所有内容构成新的RDD,这样就得到了一个由各列表中的元素组成的RDD,而不是一个列表组成的RDD。原RDD中的元素经flatmap处理后可生成多个元素来构建新RDD。
+<code class="highlighter-rouge">val b = a.flatMap(x =&gt; 1 to x)</code>   <br />
+根据a中的每个元素的值从1开始每次累加1，直到等于该元素值，生成列表。例如：元素是1，列表是1；元素是2，列表是1、2；</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">scala</span><span class="o">&gt;</span> <span class="n">val</span> <span class="n">a</span> <span class="o">=</span> <span class="n">sc</span><span class="p">.</span><span class="nf">parallelize</span><span class="p">(</span><span class="mi">1</span> <span class="n">to</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>  
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">val</span> <span class="n">b</span> <span class="o">=</span> <span class="n">a</span><span class="p">.</span><span class="nf">flatMap</span><span class="p">(</span><span class="n">x</span> <span class="o">=&gt;</span> <span class="mi">1</span> <span class="n">to</span> <span class="n">x</span><span class="p">)</span>  
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">b</span><span class="p">.</span><span class="nf">collect</span>  
+<span class="ss">res12: </span><span class="no">Array</span><span class="p">[</span><span class="no">Int</span><span class="p">]</span> <span class="o">=</span> <span class="no">Array</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span> </code></pre></figure>
+
+<p><strong>2. Tuple</strong> <br />
+Tuple元组可以包含不同类型的元素，例如<code class="highlighter-rouge">val tuple =(1,2,3.14,"Rocky","Spark")</code>         <br />
+Tuple的访问 <code class="highlighter-rouge">val third = tuple._3</code> 结果为3.14，其访问下标是从1开始的</p>
+
+<h2 id="数组操作合集">数组操作合集</h2>
+<p>初始集合的每个元素做一次翻倍</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">val</span> <span class="n">c</span> <span class="o">=</span> <span class="no">Array</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>                    
+<span class="sr">//</span><span class="o">&gt;</span> <span class="n">c</span>  <span class="p">:</span> <span class="no">Array</span><span class="p">[</span><span class="no">Int</span><span class="p">]</span> <span class="o">=</span> <span class="no">Array</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>
+<span class="n">val</span> <span class="n">result</span> <span class="o">=</span> <span class="k">for</span> <span class="p">(</span><span class="n">elem</span> <span class="o">&lt;-</span> <span class="n">c</span><span class="p">)</span> <span class="k">yield</span>  <span class="mi">2</span> <span class="o">*</span> <span class="n">elem</span>      
+<span class="sr">//</span><span class="o">&gt;</span> <span class="n">result</span>  <span class="p">:</span> <span class="no">Array</span><span class="p">[</span><span class="no">Int</span><span class="p">]</span> <span class="o">=</span> <span class="no">Array</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="mi">22</span><span class="p">)</span> </code></pre></figure>
+
+<p>for 循环中的 <strong>yield</strong> 会把当前的元素记下来，保存在集合中，循环结束后将返回该集合。Scala 中 for 循环是有返回值的。如果被循环的是 Map，返回的就是  Map，被循环的是 List，返回的就是 List，以此类推。
+分步结果展示,更好解释了yield</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">scala</span><span class="o">&gt;</span> <span class="n">val</span> <span class="n">c</span> <span class="o">=</span> <span class="no">Array</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">11</span><span class="p">)</span>
+<span class="ss">c: </span><span class="no">Array</span><span class="p">[</span><span class="no">Int</span><span class="p">]</span> <span class="o">=</span> <span class="no">Array</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="k">for</span> <span class="p">(</span><span class="n">elem</span> <span class="o">&lt;-</span> <span class="n">c</span> <span class="k">if</span> <span class="n">elem</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">yield</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">elem</span>
+<span class="ss">res5: </span><span class="no">Array</span><span class="p">[</span><span class="no">Int</span><span class="p">]</span> <span class="o">=</span> <span class="no">Array</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">c</span><span class="p">.</span><span class="nf">filter</span><span class="p">(</span><span class="n">_</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">).</span><span class="nf">map</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">_</span><span class="p">)</span>
+<span class="ss">res6: </span><span class="no">Array</span><span class="p">[</span><span class="no">Int</span><span class="p">]</span> <span class="o">=</span> <span class="no">Array</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span> 
+<span class="sr">//</span><span class="n">filter</span><span class="err">方法返回了所有使假设条件（</span><span class="n">_</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="err">）为真的结果，</span>  
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">c</span><span class="p">.</span><span class="nf">filter</span><span class="p">(</span><span class="n">_</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+<span class="ss">res7: </span><span class="no">Array</span><span class="p">[</span><span class="no">Int</span><span class="p">]</span> <span class="o">=</span> <span class="no">Array</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;-</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">4</span><span class="p">)</span> <span class="k">yield</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="ss">res8: </span><span class="n">scala</span><span class="p">.</span><span class="nf">collection</span><span class="p">.</span><span class="nf">immutable</span><span class="o">.</span><span class="no">IndexedSeq</span><span class="p">[</span><span class="no">Int</span><span class="p">]</span> <span class="o">=</span> <span class="no">Vector</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span></code></pre></figure>
+
+<p>对数组中的内容做格式处理</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">scala</span><span class="o">&gt;</span> <span class="n">val</span> <span class="n">arr</span> <span class="o">=</span> <span class="no">Array</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">9</span><span class="p">)</span>
+<span class="ss">arr: </span><span class="no">Array</span><span class="p">[</span><span class="no">Int</span><span class="p">]</span> <span class="o">=</span> <span class="no">Array</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">arr</span><span class="p">.</span><span class="nf">mkString</span><span class="p">(</span><span class="s2">" and "</span><span class="p">)</span>
+<span class="ss">res9: </span><span class="no">String</span> <span class="o">=</span> <span class="mi">1</span> <span class="n">and</span> <span class="mi">7</span> <span class="n">and</span> <span class="mi">9</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">arr</span><span class="p">.</span><span class="nf">mkString</span><span class="p">(</span><span class="s2">"&lt;"</span><span class="p">,</span><span class="s2">","</span><span class="p">,</span><span class="s2">"&gt;"</span><span class="p">)</span>
+<span class="ss">res10: </span><span class="no">String</span> <span class="o">=</span> <span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">9</span><span class="o">&gt;</span></code></pre></figure>
+
+<p>对二维数组的声明</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">val</span> <span class="n">matrix</span> <span class="o">=</span> <span class="no">Array</span><span class="p">.</span><span class="nf">ofDim</span><span class="p">[</span><span class="no">Double</span><span class="p">](</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>
+<span class="ss">matrix: </span><span class="no">Array</span><span class="p">[</span><span class="no">Array</span><span class="p">[</span><span class="no">Double</span><span class="p">]]</span> <span class="o">=</span> <span class="no">Array</span><span class="p">(</span><span class="no">Array</span><span class="p">(</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="p">),</span> <span class="no">Array</span><span class="p">(</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="p">),</span> <span class="no">Array</span><span class="p">(</span><span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="p">))</span></code></pre></figure>
+
+<p>可直接赋值<code class="highlighter-rouge">matrix(2)(3) = 5</code>
+指明数组内元素类型定长</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">val</span> <span class="n">triangle</span> <span class="o">=</span> <span class="kp">new</span> <span class="no">Array</span><span class="p">[</span><span class="no">Array</span><span class="p">[</span><span class="no">Int</span><span class="p">]](</span><span class="mi">10</span><span class="p">)</span>
+<span class="ss">triangle: </span><span class="no">Array</span><span class="p">[</span><span class="no">Array</span><span class="p">[</span><span class="no">Int</span><span class="p">]]</span> <span class="o">=</span> <span class="no">Array</span><span class="p">(</span><span class="n">null</span><span class="p">,</span> <span class="n">null</span><span class="p">,</span> <span class="n">null</span><span class="p">,</span> <span class="n">null</span><span class="p">,</span> <span class="n">null</span><span class="p">,</span> <span class="n">null</span><span class="p">,</span> <span class="n">null</span><span class="p">,</span> <span class="n">null</span><span class="p">,</span> <span class="n">null</span><span class="p">,</span> <span class="n">null</span><span class="p">)</span></code></pre></figure>
+
+<h2 id="范型">范型</h2>
+<p>泛型的本质是参数化类型，也就是说所操作的数据类型被指定为一个参数。    <br />
+假定我们有这样一个需求：写一个排序方法，能够对整型数组、字符串数组甚至其他任何类型的数组进行排序，该如何实现？答案是可以使用范型。可以写一个泛型方法，该方法在调用时可以接收不同类型的参数。根据传递给泛型方法的参数类型，编译器适当地处理每一个方法调用。  <br />
+泛型的定义列表用<code class="highlighter-rouge">[]</code>包含，用<code class="highlighter-rouge">,</code>分隔，卸载类名之后，构造函数参数列表之前，泛型的具体名称可以任意定义。  <br />
+<strong>1.Scala中类的范型</strong>
+<code class="highlighter-rouge">class Pair[K, V] (val key: K, val value: V)</code>
+<code class="highlighter-rouge">class Triple[F: ClassTag, S, T](val first: F, val second: S, val third: T)</code>    <br />
+其中ClassTage[T]解释：  <br />
+在泛型中，type T是被擦除的。这个是非常有用的，在我们构建数组的时候，但是数组的类型我们也不知道，编译的时候不知道，但是运行的时候要知道，ClassTag只包含实际运行时的类的类型。 
+<code class="highlighter-rouge">val triple = new Triple("PI", 4, 3.1415) </code>      <br />
+<code class="highlighter-rouge">val bigData = new Triple[String, String, Char]("Spark", "Hadoop", 'R')  </code>
+如在第一行中传入PI根据类型推到可以指定T是String类型，<code class="highlighter-rouge">val triple: Triple[String, Int, Double]</code>  这时候ClassTag就可以把String类型这个信息传递给编译器。ClassTag运行时指定在编译的时候无法指定的类型信息。</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">def</span> <span class="nf">mkArray</span><span class="p">[</span><span class="no">T</span> <span class="p">:</span> <span class="no">ClassTag</span><span class="p">](</span><span class="ss">elems: </span><span class="no">T</span><span class="o">*</span><span class="p">)</span> <span class="o">=</span> <span class="no">Array</span><span class="p">[</span><span class="no">T</span><span class="p">](</span><span class="ss">elems: </span><span class="n">_</span><span class="o">*</span><span class="p">)</span>
+    <span class="n">mkArray</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="mi">13</span><span class="p">).</span><span class="nf">foreach</span><span class="p">(</span><span class="n">println</span><span class="p">)</span>
+    <span class="n">mkArray</span><span class="p">(</span><span class="s2">"Japan"</span><span class="p">,</span><span class="s2">"Brazil"</span><span class="p">,</span><span class="s2">"Germany"</span><span class="p">).</span><span class="nf">foreach</span><span class="p">(</span><span class="n">println</span><span class="p">)</span> 
+<span class="err">结果为：</span>
+<span class="mi">42</span>
+<span class="mi">13</span>
+<span class="no">Japan</span>
+<span class="no">Brazil</span>
+<span class="no">Germany</span></code></pre></figure>
+
+<p><strong>2. 方法的范型</strong> <br />
+写法是在方法名后面加上泛型列表</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="sr">//</span><span class="n">getData</span><span class="err">函数传入泛型为</span><span class="no">T</span><span class="err">的运行时</span><span class="no">List</span><span class="err">类型参数，返回</span><span class="n">list</span><span class="p">.</span><span class="nf">length</span> <span class="o">/</span> <span class="mi">2</span><span class="err">的整数。</span>  
+<span class="k">def</span> <span class="nf">getData</span><span class="p">[</span><span class="no">T</span><span class="p">](</span><span class="n">list</span><span class="ss">:List</span><span class="p">[</span><span class="no">T</span><span class="p">])</span> <span class="o">=</span> <span class="n">list</span><span class="p">(</span><span class="n">list</span><span class="p">.</span><span class="nf">length</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>  
+
+<span class="sr">//</span> <span class="no">List</span><span class="err">索引从</span><span class="mi">0</span><span class="err">开始，执行结果：</span><span class="no">Hadoop</span>  
+<span class="n">println</span><span class="p">(</span><span class="n">getData</span><span class="p">(</span><span class="no">List</span><span class="p">(</span><span class="s2">"Spark"</span><span class="p">,</span><span class="s2">"Hadoop"</span><span class="p">,</span><span class="s1">'R'</span><span class="p">)));</span>  
+
+<span class="sr">//</span> <span class="err">获得</span><span class="n">getData</span><span class="err">函数引用</span>  
+<span class="n">val</span> <span class="n">f</span> <span class="o">=</span> <span class="n">getData</span><span class="p">[</span><span class="no">Int</span><span class="p">]</span> <span class="n">_</span>  
+
+<span class="sr">//</span> <span class="err">调用</span><span class="n">getData</span><span class="err">函数，执行结果：</span><span class="mi">4</span>  
+<span class="n">println</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="no">List</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">)));</span>  
+
+<span class="k">def</span> <span class="nf">position</span><span class="p">[</span><span class="no">T</span><span class="p">](</span><span class="ss">list: </span><span class="no">List</span><span class="p">[</span><span class="no">T</span><span class="p">],</span> <span class="ss">value: </span><span class="no">T</span><span class="p">):</span> <span class="no">Int</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">list</span><span class="p">.</span><span class="nf">indexOf</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">/</span><span class="sr">/取xs的索引
+}
+
+position(List(1,2,3), 3) /</span><span class="o">/</span> <span class="err">结果为</span><span class="mi">2</span>
+<span class="n">position</span><span class="p">(</span><span class="no">List</span><span class="p">(</span><span class="s2">"one"</span><span class="p">,</span> <span class="s2">"two"</span><span class="p">,</span> <span class="s2">"three"</span><span class="p">),</span> <span class="s2">"two"</span><span class="p">)</span> <span class="o">/</span><span class="sr">/ 结果为1</span></code></pre></figure>
+
+<p><strong>3.上限和下限</strong>
+&lt;:泛型类型限定符，表示只限定Comparable子类   <br />
+Comparable[T]: 为T下界，  T: 为Comparable[T]上界<br />
+写法为：</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="p">[</span><span class="no">T</span> <span class="o">&lt;</span><span class="p">:</span> <span class="no">AnyRef</span><span class="p">]</span>
+<span class="err">通配符形式</span>
+<span class="p">[</span><span class="n">_</span> <span class="o">&lt;</span><span class="p">:</span> <span class="no">AnyRef</span><span class="p">]</span> </code></pre></figure>
+
+<p>JAVA版的有界类型函数</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="kp">public</span> <span class="k">class</span> <span class="nc">MaximumTest</span>
+<span class="p">{</span>
+   <span class="sr">//</span> <span class="err">比较三个值并返回最大值</span>
+   <span class="kp">public</span> <span class="n">static</span> <span class="o">&lt;</span><span class="no">T</span> <span class="n">extends</span> <span class="no">Comparable</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;&gt;</span> <span class="no">T</span> <span class="n">maximum</span><span class="p">(</span><span class="no">T</span> <span class="n">x</span><span class="p">,</span> <span class="no">T</span> <span class="n">y</span><span class="p">,</span> <span class="no">T</span> <span class="n">z</span><span class="p">)</span>
+   <span class="p">{</span>                     
+      <span class="no">T</span> <span class="n">max</span> <span class="o">=</span> <span class="n">x</span><span class="p">;</span> <span class="sr">//</span> <span class="err">假设</span><span class="n">x</span><span class="err">是初始最大值</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="n">y</span><span class="p">.</span><span class="nf">compareTo</span><span class="p">(</span> <span class="n">max</span> <span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">){</span>
+         <span class="n">max</span> <span class="o">=</span> <span class="n">y</span><span class="p">;</span> <span class="sr">//</span><span class="n">y</span> <span class="err">更大</span>
+      <span class="p">}</span>
+      <span class="k">if</span> <span class="p">(</span> <span class="n">z</span><span class="p">.</span><span class="nf">compareTo</span><span class="p">(</span> <span class="n">max</span> <span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">){</span>
+         <span class="n">max</span> <span class="o">=</span> <span class="n">z</span><span class="p">;</span> <span class="sr">//</span> <span class="err">现在</span> <span class="n">z</span> <span class="err">更大</span>           
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="n">max</span><span class="p">;</span> <span class="sr">//</span> <span class="err">返回最大对象</span>
+   <span class="p">}</span>
+   <span class="kp">public</span> <span class="n">static</span> <span class="n">void</span> <span class="n">main</span><span class="p">(</span> <span class="no">String</span> <span class="n">args</span><span class="p">[]</span> <span class="p">)</span>
+   <span class="p">{</span>
+      <span class="no">System</span><span class="p">.</span><span class="nf">out</span><span class="p">.</span><span class="nf">printf</span><span class="p">(</span> <span class="s2">"%d, %d 和 %d 中最大的数为 %d</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">,</span>
+                   <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">maximum</span><span class="p">(</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span> <span class="p">);</span>
+ 
+      <span class="no">System</span><span class="p">.</span><span class="nf">out</span><span class="p">.</span><span class="nf">printf</span><span class="p">(</span> <span class="s2">"%.1f, %.1f 和 %.1f 中最大的数为 %.1f</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">,</span>
+                   <span class="mi">6</span><span class="o">.</span><span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="o">.</span><span class="mi">8</span><span class="p">,</span> <span class="mi">7</span><span class="o">.</span><span class="mi">7</span><span class="p">,</span> <span class="n">maximum</span><span class="p">(</span> <span class="mi">6</span><span class="o">.</span><span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="o">.</span><span class="mi">8</span><span class="p">,</span> <span class="mi">7</span><span class="o">.</span><span class="mi">7</span> <span class="p">)</span> <span class="p">);</span>
+ 
+      <span class="no">System</span><span class="p">.</span><span class="nf">out</span><span class="p">.</span><span class="nf">printf</span><span class="p">(</span> <span class="s2">"%s, %s 和 %s 中最大的数为 %s</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span><span class="s2">"pear"</span><span class="p">,</span>
+         <span class="s2">"apple"</span><span class="p">,</span> <span class="s2">"orange"</span><span class="p">,</span> <span class="n">maximum</span><span class="p">(</span> <span class="s2">"pear"</span><span class="p">,</span> <span class="s2">"apple"</span><span class="p">,</span> <span class="s2">"orange"</span> <span class="p">)</span> <span class="p">);</span>
+   <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Scala版有界类型函数</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"> <span class="k">class</span> <span class="nc">Pair</span><span class="p">[</span><span class="no">T</span> <span class="o">&lt;</span><span class="p">:</span> <span class="no">Comparable</span><span class="p">[</span><span class="no">T</span><span class="p">]](</span><span class="n">val</span> <span class="ss">first: </span><span class="no">T</span><span class="p">,</span> <span class="n">val</span> <span class="ss">second: </span><span class="no">T</span><span class="p">)</span> <span class="p">{</span>  
+      <span class="sr">//</span> <span class="n">compareTo</span><span class="err">方法进行比较，如果大于</span><span class="mi">0</span><span class="err">返回</span><span class="n">first</span>  
+      <span class="k">def</span> <span class="nf">bigger</span> <span class="o">=</span> <span class="k">if</span> <span class="p">(</span><span class="n">first</span><span class="p">.</span><span class="nf">compareTo</span><span class="p">(</span><span class="n">second</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="n">first</span> <span class="k">else</span> <span class="n">second</span>  
+    <span class="p">}</span>  
+ <span class="n">object</span> <span class="no">TypeVariablesBounds</span> <span class="p">{</span>  
+      <span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="ss">args: </span><span class="no">Array</span><span class="p">[</span><span class="no">String</span><span class="p">]):</span> <span class="no">Unit</span> <span class="o">=</span> <span class="p">{</span>  
+        <span class="sr">//</span> <span class="err">函数调用</span>  
+        <span class="n">var</span> <span class="n">pair</span> <span class="o">=</span> <span class="kp">new</span> <span class="no">Pair</span><span class="p">(</span><span class="s2">"Spark"</span><span class="p">,</span> <span class="s2">"Hadoop"</span><span class="p">)</span>  
+        <span class="sr">//</span> <span class="err">执行结果：</span><span class="no">Spark</span>  
+        <span class="n">println</span><span class="p">(</span><span class="n">pair</span><span class="p">.</span><span class="nf">bigger</span><span class="p">)</span>  
+        <span class="n">val</span> <span class="n">pair</span> <span class="o">=</span> <span class="kp">new</span> <span class="no">Pair_Ordering</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">println</span><span class="p">(</span><span class="n">pairInt</span><span class="p">.</span><span class="nf">bigger</span><span class="p">)</span>
+      <span class="p">}</span>  
+    <span class="p">}</span>  </code></pre></figure>
+
+<p><strong>4.Mainfest上下文界定</strong><br />
+在scala中数组必须是有类型的，如果直接是泛型的话将会报错，这时候引入了Manifest上下文界定，需要一个Mainfest[T]对象，而mainifest[T]有一个隐式值。 array在创建的时候，编译器仅仅只是创建，并没有指定类型。 数组在定义时必须知道具体的类型，所以在声明方法时，需要添加Manifest</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">def</span> <span class="nf">arrayMake</span><span class="p">[</span><span class="no">T</span> <span class="p">:</span> <span class="no">Manifest</span><span class="p">](</span><span class="n">first</span> <span class="p">:</span> <span class="no">T</span><span class="p">,</span> <span class="n">second</span> <span class="p">:</span> <span class="no">T</span><span class="p">)</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="n">val</span> <span class="n">r</span> <span class="o">=</span> <span class="kp">new</span> <span class="no">Array</span><span class="p">[</span><span class="no">T</span><span class="p">](</span><span class="mi">2</span><span class="p">);</span> <span class="n">r</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">=</span> <span class="n">first</span><span class="p">;</span> <span class="n">r</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">=</span> <span class="n">second</span><span class="p">;</span> <span class="n">r</span>
+    <span class="p">}</span>
+<span class="n">arrayMake</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">).</span><span class="nf">foreach</span><span class="p">(</span><span class="n">println</span><span class="p">)</span>
+<span class="err">结果为</span> <span class="mi">1</span> <span class="mi">2</span></code></pre></figure>
+
+<p><strong>5.视图界定</strong>    <br />
+视图界定： 把T类型的实例转换成Comparable[T]类型，如果T类型的实例不是Comparable[T]的子类，利用视图界定的形式就可以把T类型，隐式转换，用于一个操作符要读取一个对象而不是修改一个对象的时候。
+功能类似于：</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">scala</span><span class="o">&gt;</span> <span class="n">implicit</span> <span class="k">def</span> <span class="nf">strToInt</span><span class="p">(</span><span class="ss">x: </span><span class="no">String</span><span class="p">)</span> <span class="o">=</span> <span class="n">x</span><span class="p">.</span><span class="nf">toInt</span>
+<span class="ss">strToInt: </span><span class="p">(</span><span class="ss">x: </span><span class="no">String</span><span class="p">)</span><span class="no">Int</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="s2">"123"</span>
+<span class="ss">res0: </span><span class="n">java</span><span class="p">.</span><span class="nf">lang</span><span class="o">.</span><span class="no">String</span> <span class="o">=</span> <span class="mi">123</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">val</span> <span class="ss">y: </span><span class="no">Int</span> <span class="o">=</span> <span class="s2">"123"</span>
+<span class="ss">y: </span><span class="no">Int</span> <span class="o">=</span> <span class="mi">123</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="n">math</span><span class="p">.</span><span class="nf">max</span><span class="p">(</span><span class="s2">"123"</span><span class="p">,</span> <span class="mi">111</span><span class="p">)</span>
+<span class="ss">res1: </span><span class="no">Int</span> <span class="o">=</span> <span class="mi">123</span></code></pre></figure>
+
+<p>在视图界定中可以通过<code class="highlighter-rouge">&lt;%</code>定义,表示A应被视为Int型</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">scala</span><span class="o">&gt;</span> <span class="k">class</span> <span class="nc">Container</span><span class="p">[</span><span class="no">A</span> <span class="o">&lt;</span><span class="sx">% Int] </span><span class="p">{</span> <span class="k">def</span> <span class="nf">addIt</span><span class="p">(</span><span class="ss">x: </span><span class="no">A</span><span class="p">)</span> <span class="o">=</span> <span class="mi">123</span> <span class="o">+</span> <span class="n">x</span> <span class="p">}</span>
+<span class="n">defined</span> <span class="k">class</span> <span class="nc">Container</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="p">(</span><span class="kp">new</span> <span class="no">Container</span><span class="p">[</span><span class="no">String</span><span class="p">]).</span><span class="nf">addIt</span><span class="p">(</span><span class="s2">"123"</span><span class="p">)</span>
+<span class="ss">res11: </span><span class="no">Int</span> <span class="o">=</span> <span class="mi">246</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="p">(</span><span class="kp">new</span> <span class="no">Container</span><span class="p">[</span><span class="no">Int</span><span class="p">]).</span><span class="nf">addIt</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+<span class="ss">res12: </span><span class="no">Int</span> <span class="o">=</span> <span class="mi">246</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="p">(</span><span class="kp">new</span> <span class="no">Container</span><span class="p">[</span><span class="no">Float</span><span class="p">]).</span><span class="nf">addIt</span><span class="p">(</span><span class="mi">123</span><span class="o">.</span><span class="mi">2</span><span class="no">F</span><span class="p">)</span>
+<span class="o">&lt;</span><span class="n">console</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8</span><span class="p">:</span> <span class="ss">error: </span><span class="n">could</span> <span class="n">not</span> <span class="n">find</span> <span class="n">implicit</span> <span class="n">value</span> <span class="k">for</span> <span class="n">evidence</span> <span class="n">parameter</span> <span class="n">of</span> <span class="n">type</span> <span class="p">(</span><span class="no">Float</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="no">Int</span>
+       <span class="p">(</span><span class="kp">new</span> <span class="no">Container</span><span class="p">[</span><span class="no">Float</span><span class="p">]).</span><span class="nf">addIt</span><span class="p">(</span><span class="mi">123</span><span class="o">.</span><span class="mi">2</span><span class="p">)</span>
+        <span class="o">^</span></code></pre></figure>
+
+<p>还有一些其它的操作符（在Scala 2.10前有效）  <br />
+<code class="highlighter-rouge">A =:= B	   A must be equal to B   
+ A &lt;:&lt; B           A must be a subtype of B   
+ A &lt;%&lt; B	   A must be viewable as B  </code> 
+使用范例如下：</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">scala</span><span class="o">&gt;</span> <span class="k">class</span> <span class="nc">Container</span><span class="p">[</span><span class="no">A</span><span class="p">](</span><span class="ss">value: </span><span class="no">A</span><span class="p">)</span> <span class="p">{</span> <span class="k">def</span> <span class="nf">addIt</span><span class="p">(</span><span class="n">implicit</span> <span class="ss">evidence: </span><span class="no">A</span> <span class="o">=</span><span class="p">:</span><span class="o">=</span> <span class="no">Int</span><span class="p">)</span> <span class="o">=</span> <span class="mi">123</span> <span class="o">+</span> <span class="n">value</span> <span class="p">}</span>
+<span class="n">defined</span> <span class="k">class</span> <span class="nc">Container</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="p">(</span><span class="kp">new</span> <span class="no">Container</span><span class="p">(</span><span class="mi">123</span><span class="p">)).</span><span class="nf">addIt</span>
+<span class="ss">res11: </span><span class="no">Int</span> <span class="o">=</span> <span class="mi">246</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="p">(</span><span class="kp">new</span> <span class="no">Container</span><span class="p">(</span><span class="s2">"123"</span><span class="p">)).</span><span class="nf">addIt</span>
+<span class="o">&lt;</span><span class="n">console</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">10</span><span class="p">:</span> <span class="ss">error: </span><span class="n">could</span> <span class="n">not</span> <span class="n">find</span> <span class="n">implicit</span> <span class="n">value</span> <span class="k">for</span> <span class="n">parameter</span> <span class="ss">evidence: </span><span class="o">=</span><span class="p">:</span><span class="o">=</span><span class="p">[</span><span class="n">java</span><span class="p">.</span><span class="nf">lang</span><span class="o">.</span><span class="no">String</span><span class="p">,</span><span class="no">Int</span><span class="p">]</span></code></pre></figure>
+
+<p>下面的例子中使用了&lt;:&lt;</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"> <span class="k">def</span> <span class="nf">manif</span><span class="p">[</span><span class="no">T</span><span class="p">](</span><span class="ss">x: </span><span class="no">List</span><span class="p">[</span><span class="no">T</span><span class="p">])(</span><span class="n">implicit</span> <span class="ss">m: </span><span class="no">Manifest</span><span class="p">[</span><span class="no">T</span><span class="p">])</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">m</span> <span class="o">&lt;</span><span class="ss">:&lt;</span> <span class="n">manifest</span><span class="p">[</span><span class="no">String</span><span class="p">])</span>
+        <span class="n">println</span><span class="p">(</span><span class="s2">"List strings"</span><span class="p">)</span>
+      <span class="k">else</span>
+        <span class="n">println</span><span class="p">(</span><span class="s2">"Some other type"</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="n">manif</span><span class="p">(</span><span class="no">List</span><span class="p">(</span><span class="s2">"Spark"</span><span class="p">,</span> <span class="s2">"Hadoop"</span><span class="p">))</span>
+    <span class="n">manif</span><span class="p">(</span><span class="no">List</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">manif</span><span class="p">(</span><span class="no">List</span><span class="p">(</span><span class="s2">"Scala"</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+ <span class="err">结果为：</span>
+<span class="no">List</span> <span class="n">strings</span>
+<span class="no">Some</span> <span class="n">other</span> <span class="n">type</span>
+<span class="no">Some</span> <span class="n">other</span> <span class="n">type</span></code></pre></figure>
+
+
+
+                <hr style="visibility: hidden;">
+
+                
+
+
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2017/04/28/MPI+CUDA%E6%B7%B7%E5%90%88%E7%BC%96%E8%AF%91/" data-toggle="tooltip" data-placement="top" title="MPI+CUDA混合编译">
+                        Previous<br>
+                        <span>MPI+CUDA混合编译</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2017/07/07/Spark%E5%86%85%E6%A0%B8%E6%9E%B6%E6%9E%84%E5%9B%9E%E9%A1%BE/" data-toggle="tooltip" data-placement="top" title="Spark内核架构回顾">
+                        Next<br>
+                        <span>Spark内核架构回顾</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+
+
+                
+
+                
+
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Friends Blog -->
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    
+                    <!-- add jianshu add target = "_blank" to <a> by BY -->
+                    
+                    
+
+                    <!-- add Weibo, Zhihu by Hux, add target = "_blank" to <a> by Hux -->
+                    
+                    
+
+
+                    
+                    
+                    
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Memory 2017
+                    <br>
+                    Theme by <a href="http://huangxuan.me">Hux</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=huxpro&repo=huxpro.github.io&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- Service Worker -->
+
+<script type="text/javascript">
+    if(navigator.serviceWorker){
+        // For security reasons, a service worker can only control the pages that are in the same directory level or below it. That's why we put sw.js at ROOT level.
+        navigator.serviceWorker
+            .register('/sw.js')
+            .then((registration) => {console.log('Service Worker Registered. ', registration)})
+            .catch((error) => {console.log('ServiceWorker registration failed: ', error)})
+    }
+</script>
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/ 
+     - https://github.com/jneen/rouge/wiki/list-of-supported-languages-and-lexers   
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async('/js/jquery.tagcloud.js',function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+
+<!-- Baidu Tongji -->
+
+<script>
+    // dynamic User by Hux
+    var _baId = 'b50bf2b12b5338a1845e33832976fd68';
+
+    // Originial
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+
+
+<!-- Image to hack wechat -->
+<img src="/img/my_icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
