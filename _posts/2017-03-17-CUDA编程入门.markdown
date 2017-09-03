@@ -191,5 +191,9 @@ cudaSetDevice(dev);
 如果有N个数据元素，那么通常只需要N个线程来计算点积，为了防止线程过多的情况，线程的数量应为ThreadPreBlock的最小整数倍，并写要大于等于N，可以采用如下计算公式      
     `（N+(ThreadPreBlock-1)/ThreadPreBlock）`      
 当某些线程需要执行一条指令，而其他线程不需要执行是，这种情况称为线程发散，如只有奇数索引的线程才执行__syncthreads(),由于要确保在每个线程都执行完__syncthreads(),硬件将使这些未执行的线程保持等待，永久的等下去。
+## CUDA流 ##   
+
+要想使用多个流，需要检查设备是否支持重叠功能，方法如下在CUDA的安装目录下有
+`/NVIDIA_CUDA-8.0_Samples/1_Utilities/deviceQuery`文件，对文件中DeviceQuery 进行修改在输出部分添加输出` deviceProp.deviceOverlap? "Enable":"Disable" `  GPU是否支持设备重叠(Device Overlap)功能,支持设备重叠功能的GPU能够在执行一个CUDA C核函数的同时，还能在设备与主机之间执行复制等操作,
 
 
