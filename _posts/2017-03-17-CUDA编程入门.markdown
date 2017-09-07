@@ -30,7 +30,7 @@ Kernel函数（入口函数）在CPU上调用在GPU上执行，GPU在执行kerne
 ![](http://i.imgur.com/jdGG8hl.png)  
 
 CUDA中的kernel函数是一个可以在CUDA程序中被独立并行执行的一个过程。
-# CUDA API语法 #
+## CUDA API语法 ##
 {% highlight ruby %}
 __global__ void Compute(int *gpudata) { .......}
 {% endhighlight %}  
@@ -38,10 +38,10 @@ __global__ void Compute(int *gpudata) { .......}
 {% highlight ruby %}
 Compute<<<m,n>>>(a,b)
 {% endhighlight %}  
-其中<<< >>>是运算符，用来传递要调用的kernel函数的执行参数，m代表每个Grid中的Block数量，n代表每个Block中的Thread数量，<<< >>>也包含每个Block能够分配的额外shared memory大小，隐藏默认为1。   a,b是函数调用的实参。   
+其中 <<< >>> 是运算符，用来传递要调用的kernel函数的执行参数，m代表每个Grid中的Block数量，n代表每个Block中的Thread数量， <<< >>> 也包含每个Block能够分配的额外shared memory大小，隐藏默认为1。   a,b是函数调用的实参。   
 
 每个	Grid分为N个Block，每个Block分为M个Thread，则每个线程的序号为 N*M+ThreadID.x。 
-# 索引计算方法 #
+## 索引计算方法 ##
 {% highlight ruby %}
 int tid = threadIdx.x + blockIdx.x * blockDim.x;
 {% endhighlight %}    
@@ -168,4 +168,32 @@ void checkCUDAError(const char *msg)
 }
 
 {% endhighlight %}
+
+## 设备属性的使用##
+如要进行双精度浮点计算的应用程序，需要1.3或更高版本的显卡才能支持双精度浮点数学计算，因此根据cudaDGetDeviceCount()和cudaGetDeviceProporties()中返回的结果，对每个设备进行迭代，查找主版本号大于1，或者主版本号为1且次版本号大于等于3的设备。cuda提供了一种自动的方式来执行这种迭代操作
+{% highlight ruby %}
+cudaDeviceProp prop;
+int dev;
+cudaGetDevice(&dev);
+memset(&prop,0,sizeof(cudaDeviceProp) );
+prop.major = 1;
+prop.minor = 3;
+cudaChooseDevice(&dev,&prop);
+cudaSetDevice(dev);
+{% endhighlight %}
+
+#### 在完成集群调度策略优化的时候，会考虑各设备间的异构性，为在不同调度策略中可以通过设备属性的选择完成调度策略的应用。
+
+## 共享内存## 
+共享内存会将CUDA C的关键字 `__share__` 添加到变量声明中，表示这一变量将驻留在共享内存中。对于共享内存来说，GPU在启动每一个线程块时，都会为该线程块创建一个该共享内存变量的一个副本，线程块中的每个线程都将共享这块内存，但线程块中的线程无法看到或修改其它线程块的变量副本，即共享内存是对于线程块中的线程来说，是同一线程块中的线程可以进行通信和协作。       
+
+#### cuda设备属性中会限制在一个线程块中可使用的最大共享内存数量。
+如果有N个数据元素，那么通常只需要N个线程来计算点积，为了防止线程过多的情况，线程的数量应为ThreadPreBlock的最小整数倍，并写要大于等于N，可以采用如下计算公式      
+    `（N+(ThreadPreBlock-1)/ThreadPreBlock）`      
+当某些线程需要执行一条指令，而其他线程不需要执行是，这种情况称为线程发散，如只有奇数索引的线程才执行__syncthreads(),由于要确保在每个线程都执行完__syncthreads(),硬件将使这些未执行的线程保持等待，永久的等下去。
+## CUDA流 ##   
+
+要想使用多个流，需要检查设备是否支持重叠功能，方法如下在CUDA的安装目录下有
+`/NVIDIA_CUDA-8.0_Samples/1_Utilities/deviceQuery`文件，对文件中DeviceQuery 进行修改在输出部分添加输出` deviceProp.deviceOverlap? "Enable":"Disable" `  GPU是否支持设备重叠(Device Overlap)功能,支持设备重叠功能的GPU能够在执行一个CUDA C核函数的同时，还能在设备与主机之间执行复制等操作,
+
 
