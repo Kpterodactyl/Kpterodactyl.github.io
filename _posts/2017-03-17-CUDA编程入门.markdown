@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  CUDA编程基础知识+示例
+title:  CUDA编程基础知识+示例（一）
 date:   2017-03-17 18:53:23 +0800
 author:     Memory
 header-img: img/post-bg-js-module.jpg
@@ -194,6 +194,6 @@ cudaSetDevice(dev);
 ## CUDA流 ##   
 
 要想使用多个流，需要检查设备是否支持重叠功能，方法如下在CUDA的安装目录下有
-`/NVIDIA_CUDA-8.0_Samples/1_Utilities/deviceQuery`文件，对文件中DeviceQuery 进行修改在输出部分添加输出` deviceProp.deviceOverlap? "Enable":"Disable" `  GPU是否支持设备重叠(Device Overlap)功能,支持设备重叠功能的GPU能够在执行一个CUDA C核函数的同时，还能在设备与主机之间执行复制等操作,
+`/NVIDIA_CUDA-8.0_Samples/1_Utilities/deviceQuery`文件，对文件中DeviceQuery 进行修改在输出部分添加输出` deviceProp.deviceOverlap? "Enable":"Disable" `  GPU是否支持设备重叠(Device Overlap)功能,支持设备重叠功能的GPU能够在执行一个CUDA C核函数的同时，还能在设备与主机之间执行复制等操作。
 
 
