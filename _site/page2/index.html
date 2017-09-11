@@ -180,6 +180,86 @@
             ">
     			
 <div class="post-preview">
+    <a href="/2017/03/31/Docker%E5%9F%BA%E7%A1%80%E6%8C%87%E4%BB%A4%E5%8F%8ADockerfile/">
+        <h2 class="post-title">
+            Docker基础知识
+        </h2>
+        
+        <h3 class="post-subtitle">
+            Docker基础指令及Dockerfile
+        </h3>
+        
+        <div class="post-content-preview">
+            Docker 可以让开发者打包他们的应用以及依赖包到一个轻量级、可移植的容器中，然后发布到任何流行的 linux 机器上，也可以实现虚拟化。Docker可以保证在软件开发的时候的环境一致性，以及环境迁移的便捷性。
+
+
+  
+    Docker镜像：在运行之后吧、会变成容器，启动Container的速度非常快，docker镜像采用了分层技术，基于一个基础镜像（docker run）
+  
+ ...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Memory on March 31, 2017
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/cuda/2017/03/17/CUDA%E7%BC%96%E7%A8%8B%E5%85%A5%E9%97%A8/">
+        <h2 class="post-title">
+            CUDA编程基础知识+示例（一）
+        </h2>
+        
+        <div class="post-content-preview">
+            一个CUDA程序一般分为两部分
+
+
+  
+    Host 运行在CPU端，逻辑判断密集型
+  
+  
+    Device 运行在GPU端，计算密集型
+  
+
+
+内存分配：无论是CPU端的主存还是GPU端的显存，都必须通过CUDA在主机端进行统一分配
+
+CUDA编程模型：
+GPU与CPU交互通过PCIE总线进行互联，CUDA的线程结构是网格-线程块-线程（是CUDA程序的最小执行单元）三级...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Memory on March 17, 2017
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/cuda/2017/03/14/CUDA-GDB%E4%BD%BF%E7%94%A8/">
+        <h2 class="post-title">
+            How to use cuda-gdb debug
+        </h2>
+        
+        <div class="post-content-preview">
+            开始学习cuda编程了，就会遇到好多的问题，怎么知道是哪里出问题了呢，CUDA自带的cuda-gdb就会帮到我们啦。NVIDA对开源的GUN调试器进行了扩展，CUDA-GDB包含以下功能：
+
+
+  观察CUDA状态，例如已安装的GPU及其支持的功能
+  在CUDA C中设置断点
+  分享GPU中内存，包括全局内存和共享内存
+  单步调试
+  分析当前驻留在GPU上的线程块和线程
+  设置断点...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Memory on March 14, 2017
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
     <a href="/jekyll/2017/03/14/Jekyll%E4%BD%BF%E7%94%A8%E5%8F%AF%E8%83%BD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/">
         <h2 class="post-title">
              Don't have jekyll-paginate  
@@ -473,23 +553,24 @@ $ cat /etc/issue
 
 <!-- Google Analytics -->
 
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-49353717-4';
+    var _gaDomain = 'auto';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
 
 
 <!-- Baidu Tongji -->
-
-<script>
-    // dynamic User by Hux
-    var _baId = 'b50bf2b12b5338a1845e33832976fd68';
-
-    // Originial
-    var _hmt = _hmt || [];
-    (function() {
-      var hm = document.createElement("script");
-      hm.src = "//hm.baidu.com/hm.js?" + _baId;
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(hm, s);
-    })();
-</script>
 
 
 
