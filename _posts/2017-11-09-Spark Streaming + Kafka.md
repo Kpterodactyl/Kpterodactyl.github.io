@@ -86,9 +86,9 @@ public void sendMessage(String key, String value) {
     }
 {% endhighlight %} 
 生成对应的jar，通过`java -jar MyKafkaProject.jar MyKafkaProject.MyKafkaProducer.KafkaFileProducer`运行 可以看到大量的数据从csv中读取出来了       
-![](/Users/mac/Desktop/14.png)     
+![](https://i.imgur.com/F5Yu7V1.png)
 在consumer中查看一下消息`bin/kafka-console-consumer.sh --bootstrap-server master:9092 --topic getdata --from-beginning`
-![](/Users/mac/Desktop/15.png)     
+![](https://i.imgur.com/KAESSrk.png)   
 ## Spark-streaming的使用 ##  
 Spark Streaming 是Spark核心API的一个扩展，可以实现高吞吐量的、具备容错机制的实时流数据的处理。Spark Streaming的工作方式是将数据的实时数据流分成预定义间隔（N秒）的批处理（称microbatches），然后将每批数据视为RDD。然后我们可以使用map，reduce，reduceByKey，join等操作来处理这些RDD。这些RDD操作的结果是分批返回的。我们通常将这些结果存储到数据存储中以进一步分析，并生成报告和仪表盘或发送基于事件的警报。根据使用情况和数据处理要求，确定Spark Streaming的时间间隔非常重要。它的N值太低，那么在分析过程中，微量的批次将没有足够的数据给出有意义的结果。
 
